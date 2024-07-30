@@ -11,6 +11,7 @@
 		<CompilerGeneratedFilesOutputPath>$(BaseIntermediateOutputPath)Generated</CompilerGeneratedFilesOutputPath>
 	  <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 	  <LangVersion>latest</LangVersion>
+	  <Nullable>enable</Nullable>
 	</PropertyGroup>
 
   <ItemGroup>

@@ -8,12 +8,14 @@ public static class Program
   {
     Console.WriteLine("Hello");
 
+    var x = new ISampleRpcServiceImplementation();
     
+
   }
 }
 
 
-[RpcService]
+//[RpcService]
 public interface IMyService
 {
   void DoWork();
