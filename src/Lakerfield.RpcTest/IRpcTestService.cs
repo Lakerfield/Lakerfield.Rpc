@@ -2,5 +2,6 @@
 
 public partial interface IRpcTestService
 {
+  // implementation in Services/...Service.cs
 
 }

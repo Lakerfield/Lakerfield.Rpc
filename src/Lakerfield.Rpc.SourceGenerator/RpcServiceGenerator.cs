@@ -15,6 +15,25 @@ public class RpcServiceGenerator : IIncrementalGenerator
 {
   public void Initialize(IncrementalGeneratorInitializationContext context)
   {
+    context.RegisterPostInitializationOutput(static postInitializationContext => {
+      postInitializationContext.AddSource("RpcAttributes.g.cs", SourceText.From($$"""
+using System;
+
+namespace Lakerfield.Rpc
+{
+  internal sealed class RpcServiceAttribute : Attribute
+  {
+  }
+  internal sealed class RpcServerAttribute : Attribute
+  {
+  }
+  internal sealed class RpcClientAttribute : Attribute
+  {
+  }
+}
+""", Encoding.UTF8));
+    });
+
     // Check if the project references "Lakerfield.Rpc.Client"
     var hasClientDependencyCheck = context.CompilationProvider
       .Select((compilation, _) =>
@@ -35,25 +54,11 @@ public class RpcServiceGenerator : IIncrementalGenerator
         return false;
       });
 
-    context.RegisterPostInitializationOutput(static postInitializationContext => {
-      postInitializationContext.AddSource("RpcServiceAttribute.g.cs", SourceText.From($$"""
-using System;
-
-namespace Lakerfield.Rpc
-{
-  internal sealed class RpcServiceAttribute : Attribute
-  {
-  }
-}
-""", Encoding.UTF8));
-    });
-
-
     // Find all interfaces with RpcServiceAttribute
     var interfacesWithAttribute = context.SyntaxProvider
       .CreateSyntaxProvider(
         predicate: (s, _) => s is InterfaceDeclarationSyntax,
-        transform: (ctx, _) => GetSemanticTargetForGeneration(ctx))
+        transform: (ctx, _) => GetSemanticInterfaceTargetForGeneration(ctx))
       .Where(m => m is not null)
       .Select((symbol, _) => (INamedTypeSymbol)symbol!)
       .Collect();
@@ -72,14 +77,39 @@ namespace Lakerfield.Rpc
       {
         if (symbol is not null)
         {
-          GenerateImplementation2(spc, (INamedTypeSymbol)symbol, hasServer, hasClient);
+          GenerateInterfaceImplementation(spc, (INamedTypeSymbol)symbol, hasServer, hasClient);
+        }
+      }
+    });
+
+    // Find all classes with RpcServerAttribute
+    var classesWithAttribute = context.SyntaxProvider
+      .CreateSyntaxProvider(
+        predicate: (s, _) => s is ClassDeclarationSyntax,
+        transform: (ctx, _) => GetSemanticClassTargetForGeneration(ctx))
+      .Where(m => m is not null)
+      .Select((symbol, _) => (INamedTypeSymbol)symbol!)
+      .Collect();
+
+    // Combine the dependency check with the source generator logic
+    var combinedClass = classesWithAttribute.Combine(hasServerDependencyCheck).Combine(hasClientDependencyCheck);
+
+    // Register the source generator to generate the implementation class only if the dependency is present
+    context.RegisterSourceOutput(combinedClass, (spc, tuple) =>
+    {
+      var ((symbols, hasServer), hasClient) = tuple;
+      foreach (var symbol in symbols.Distinct(SymbolEqualityComparer.Default))
+      {
+        if (symbol is not null)
+        {
+          GenerateClassImplementation(spc, (INamedTypeSymbol)symbol, hasServer, hasClient);
         }
       }
     });
 
   }
 
-  private static INamedTypeSymbol? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
+  private static INamedTypeSymbol? GetSemanticInterfaceTargetForGeneration(GeneratorSyntaxContext context)
   {
     var interfaceDeclarationSyntax = (InterfaceDeclarationSyntax)context.Node;
     var interfaceSymbol = context.SemanticModel.GetDeclaredSymbol(interfaceDeclarationSyntax);
@@ -99,7 +129,27 @@ namespace Lakerfield.Rpc
     return null;
   }
 
-  private void GenerateImplementation2(SourceProductionContext context, INamedTypeSymbol interfaceSymbol, bool hasServer, bool hasClient)
+  private static INamedTypeSymbol? GetSemanticClassTargetForGeneration(GeneratorSyntaxContext context)
+  {
+    var classDeclarationSyntax = (ClassDeclarationSyntax)context.Node;
+    var classSymbol = context.SemanticModel.GetDeclaredSymbol(classDeclarationSyntax);
+
+    if (classSymbol is not null)
+    {
+      var attributes = classSymbol.GetAttributes();
+      foreach (var attribute in attributes)
+      {
+        if (attribute.AttributeClass?.Name == "RpcServerAttribute")
+        {
+          return classSymbol;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  private void GenerateInterfaceImplementation(SourceProductionContext context, INamedTypeSymbol interfaceSymbol, bool hasServer, bool hasClient)
   {
     var interfaceName = interfaceSymbol.Name;
     var namespaceName = interfaceSymbol.ContainingNamespace.ToDisplayString();
@@ -117,7 +167,7 @@ namespace Lakerfield.Rpc
 
     // Implement each method from the interface
     //foreach (var member in interfaceSymbol.GetMembers().OfType<IMethodSymbol>())
-    foreach (var member in GetAllMembersIncludingInherited(interfaceSymbol).OfType<IMethodSymbol>())
+    foreach (var member in GetAllInterfaceMembersIncludingInherited(interfaceSymbol).OfType<IMethodSymbol>())
     {
       var methodName = member.Name;
       var returnType = member.ReturnType.ToDisplayString();
@@ -144,10 +194,71 @@ namespace Lakerfield.Rpc
     context.AddSource($"{className.TrimStart('I')}.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
   }
 
-  public static IEnumerable<ISymbol> GetAllMembersIncludingInherited(INamedTypeSymbol interfaceSymbol)
+  private void GenerateClassImplementation(SourceProductionContext context, INamedTypeSymbol classSymbol, bool hasServer, bool hasClient)
+  {
+    var className = classSymbol.Name;
+    var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
+    var sourceBuilder = new StringBuilder($$"""
+using System;
+
+namespace {{namespaceName}}
+{
+// server {{hasServer}} client {{hasClient}}
+  public partial class {{className}}
+  {
+    public Lakerfield.Rpc.NetworkClient Client { get; }
+    public {{className}}(Lakerfield.Rpc.NetworkClient client)
+    {
+      Client = client;
+    }
+
+""");
+
+    // Implement each method from the interface
+    //foreach (var member in interfaceSymbol.GetMembers().OfType<IMethodSymbol>())
+    foreach (var member in GetAllInterfaceMembersIncludingInherited(classSymbol).OfType<IMethodSymbol>())
+    {
+      var methodName = member.Name;
+      var returnType = member.ReturnType.ToDisplayString();
+      var parameters = string.Join(", ", member.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
+
+      sourceBuilder.Append($$"""
+    public {{returnType}} {{methodName}}({{parameters}})
+    {
+      throw new NotImplementedException();//
+    }
+
+    public class {{methodName}}Request : Lakerfield.Rpc.RpcMessage
+    {
+      public {{member.Parameters.FirstOrDefault()?.Type}}
+    }
+    public class {{methodName}}Response: Lakerfield.Rpc.RpcMessage
+    {
+      public {{returnType}} Result { get; set; }
+    }
+
+
+""");
+      //, CancellationToken cancellationToken = default
+    }
+
+    sourceBuilder.Append("""
+ }
+}
+
+""");
+
+    // Add the generated source
+    context.AddSource($"{className}.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
+  }
+
+
+  public static IEnumerable<ISymbol> GetAllInterfaceMembersIncludingInherited(INamedTypeSymbol interfaceSymbol)
   {
     // Get all members of the current interface
-    var members = new List<ISymbol>(interfaceSymbol.GetMembers());
+    var members = new List<ISymbol>();
+    if (interfaceSymbol.TypeKind == TypeKind.Interface)
+      members.AddRange(interfaceSymbol.GetMembers());
 
     // Get all inherited interfaces
     foreach (var inheritedInterface in interfaceSymbol.AllInterfaces)
@@ -158,6 +269,16 @@ namespace Lakerfield.Rpc
 
     return members;
   }
+
+
+
+
+
+
+
+
+
+
 
 
 

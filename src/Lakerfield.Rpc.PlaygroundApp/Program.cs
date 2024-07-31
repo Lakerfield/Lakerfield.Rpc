@@ -8,8 +8,8 @@ public static class Program
   {
     Console.WriteLine("Hello");
 
-    var x = new ISampleRpcServiceImplementation();
-    
+    var x = new SampleRpcServiceImplementation();
+
 
   }
 }

@@ -27,7 +27,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lakerfield.RpcTest.ServerAp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lakerfield.RpcTest.ClientApp", "src\Lakerfield.RpcTest.ClientApp\Lakerfield.RpcTest.ClientApp.csproj", "{EBD4DCB8-DAFB-43CC-916C-378B8AB5DE91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MongoDB.Bson", "..\Lakerfield.Bson\src\MongoDB.Bson\MongoDB.Bson.csproj", "{36067469-A2F3-4FFC-AF9B-583646130CCC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lakerfield.Bson", "..\Lakerfield.Bson\src\Lakerfield.Bson\Lakerfield.Bson.csproj", "{36067469-A2F3-4FFC-AF9B-583646130CCC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

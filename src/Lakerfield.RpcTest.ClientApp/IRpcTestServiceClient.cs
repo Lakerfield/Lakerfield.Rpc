@@ -9,3 +9,6 @@ public interface IRpcTestServiceClient : IRpcTestService
   public Task<string> GetHelloWorldAsync2();
 
 }
+
+
+

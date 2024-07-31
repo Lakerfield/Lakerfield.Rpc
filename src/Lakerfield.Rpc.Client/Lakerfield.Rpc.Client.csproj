@@ -7,4 +7,13 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Lakerfield.Bson\src\Lakerfield.Bson\Lakerfield.Bson.csproj" />
+    <ProjectReference Include="..\Lakerfield.Rpc\Lakerfield.Rpc.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Reactive" Version="6.0.1" />
+  </ItemGroup>
+
 </Project>
