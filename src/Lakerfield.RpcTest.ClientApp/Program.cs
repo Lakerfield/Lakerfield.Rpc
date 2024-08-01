@@ -9,7 +9,7 @@ var pingResponse = await clientX.ExecutePing();
 
 //pingResponse.
 
-var client = new RpcTestServiceClient();
+var client = new RpcTestServiceClient(clientX);
 
 var company = await client.CompanyFindById(Guid.NewGuid());
 

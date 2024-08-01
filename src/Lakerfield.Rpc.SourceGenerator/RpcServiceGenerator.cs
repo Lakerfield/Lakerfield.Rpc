@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Lakerfield.Rpc;
 
 [Generator]
-public class RpcServiceGenerator : IIncrementalGenerator
+public partial class RpcServiceGenerator : IIncrementalGenerator
 {
   public void Initialize(IncrementalGeneratorInitializationContext context)
   {
@@ -21,9 +21,9 @@ using System;
 
 namespace Lakerfield.Rpc
 {
-  internal sealed class RpcServiceAttribute : Attribute
-  {
-  }
+  //internal sealed class RpcServiceAttribute : Attribute
+  //{
+  //}
   internal sealed class RpcServerAttribute : Attribute
   {
   }
@@ -82,27 +82,54 @@ namespace Lakerfield.Rpc
       }
     });
 
+
     // Find all classes with RpcServerAttribute
-    var classesWithAttribute = context.SyntaxProvider
+    var serverClassesWithAttribute = context.SyntaxProvider
       .CreateSyntaxProvider(
         predicate: (s, _) => s is ClassDeclarationSyntax,
-        transform: (ctx, _) => GetSemanticClassTargetForGeneration(ctx))
+        transform: (ctx, _) => GetSemanticClassTargetForGeneration(ctx, "RpcServerAttribute"))
       .Where(m => m is not null)
       .Select((symbol, _) => (INamedTypeSymbol)symbol!)
       .Collect();
 
     // Combine the dependency check with the source generator logic
-    var combinedClass = classesWithAttribute.Combine(hasServerDependencyCheck).Combine(hasClientDependencyCheck);
+    var combinedServerClass = serverClassesWithAttribute.Combine(hasServerDependencyCheck).Combine(hasClientDependencyCheck);
 
     // Register the source generator to generate the implementation class only if the dependency is present
-    context.RegisterSourceOutput(combinedClass, (spc, tuple) =>
+    context.RegisterSourceOutput(combinedServerClass, (spc, tuple) =>
     {
       var ((symbols, hasServer), hasClient) = tuple;
       foreach (var symbol in symbols.Distinct(SymbolEqualityComparer.Default))
       {
         if (symbol is not null)
         {
-          GenerateClassImplementation(spc, (INamedTypeSymbol)symbol, hasServer, hasClient);
+          GenerateServerClass(spc, (INamedTypeSymbol)symbol, hasServer, hasClient);
+        }
+      }
+    });
+
+
+    // Find all classes with RpcClientAttribute
+    var clientClassesWithAttribute = context.SyntaxProvider
+      .CreateSyntaxProvider(
+        predicate: (s, _) => s is ClassDeclarationSyntax,
+        transform: (ctx, _) => GetSemanticClassTargetForGeneration(ctx, "RpcClientAttribute"))
+      .Where(m => m is not null)
+      .Select((symbol, _) => (INamedTypeSymbol)symbol!)
+      .Collect();
+
+    // Combine the dependency check with the source generator logic
+    var combinedClientClass = clientClassesWithAttribute.Combine(hasServerDependencyCheck).Combine(hasClientDependencyCheck);
+
+    // Register the source generator to generate the implementation class only if the dependency is present
+    context.RegisterSourceOutput(combinedClientClass, (spc, tuple) =>
+    {
+      var ((symbols, hasServer), hasClient) = tuple;
+      foreach (var symbol in symbols.Distinct(SymbolEqualityComparer.Default))
+      {
+        if (symbol is not null)
+        {
+          GenerateClientClass(spc, (INamedTypeSymbol)symbol, hasServer, hasClient);
         }
       }
     });
@@ -129,7 +156,7 @@ namespace Lakerfield.Rpc
     return null;
   }
 
-  private static INamedTypeSymbol? GetSemanticClassTargetForGeneration(GeneratorSyntaxContext context)
+  private static INamedTypeSymbol? GetSemanticClassTargetForGeneration(GeneratorSyntaxContext context, string attributeClassName)
   {
     var classDeclarationSyntax = (ClassDeclarationSyntax)context.Node;
     var classSymbol = context.SemanticModel.GetDeclaredSymbol(classDeclarationSyntax);
@@ -139,7 +166,7 @@ namespace Lakerfield.Rpc
       var attributes = classSymbol.GetAttributes();
       foreach (var attribute in attributes)
       {
-        if (attribute.AttributeClass?.Name == "RpcServerAttribute")
+        if (attribute.AttributeClass?.Name == attributeClassName)
         {
           return classSymbol;
         }
@@ -194,63 +221,6 @@ namespace Lakerfield.Rpc
     context.AddSource($"{className.TrimStart('I')}.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
   }
 
-  private void GenerateClassImplementation(SourceProductionContext context, INamedTypeSymbol classSymbol, bool hasServer, bool hasClient)
-  {
-    var className = classSymbol.Name;
-    var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
-    var sourceBuilder = new StringBuilder($$"""
-using System;
-
-namespace {{namespaceName}}
-{
-// server {{hasServer}} client {{hasClient}}
-  public partial class {{className}}
-  {
-    public Lakerfield.Rpc.NetworkClient Client { get; }
-    public {{className}}(Lakerfield.Rpc.NetworkClient client)
-    {
-      Client = client;
-    }
-
-""");
-
-    // Implement each method from the interface
-    //foreach (var member in interfaceSymbol.GetMembers().OfType<IMethodSymbol>())
-    foreach (var member in GetAllInterfaceMembersIncludingInherited(classSymbol).OfType<IMethodSymbol>())
-    {
-      var methodName = member.Name;
-      var returnType = member.ReturnType.ToDisplayString();
-      var parameters = string.Join(", ", member.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
-
-      sourceBuilder.Append($$"""
-    public {{returnType}} {{methodName}}({{parameters}})
-    {
-      throw new NotImplementedException();//
-    }
-
-    public class {{methodName}}Request : Lakerfield.Rpc.RpcMessage
-    {
-      public {{member.Parameters.FirstOrDefault()?.Type}}
-    }
-    public class {{methodName}}Response: Lakerfield.Rpc.RpcMessage
-    {
-      public {{returnType}} Result { get; set; }
-    }
-
-
-""");
-      //, CancellationToken cancellationToken = default
-    }
-
-    sourceBuilder.Append("""
- }
-}
-
-""");
-
-    // Add the generated source
-    context.AddSource($"{className}.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
-  }
 
 
   public static IEnumerable<ISymbol> GetAllInterfaceMembersIncludingInherited(INamedTypeSymbol interfaceSymbol)
@@ -270,7 +240,15 @@ namespace {{namespaceName}}
     return members;
   }
 
+  public static ITypeSymbol? GetGenericTypeArgument(ITypeSymbol typeSymbol)
+  {
+    if (typeSymbol is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.IsGenericType)
+    {
+      return namedTypeSymbol.TypeArguments.FirstOrDefault();
+    }
 
+    return null;
+  }
 
 
 

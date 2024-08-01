@@ -1,18 +1,19 @@
+using System.Threading.Tasks;
 using Lakerfield.Rpc;
+using Lakerfield.RpcTest.Models;
 
 namespace Lakerfield.RpcTest;
 
-[RpcServer]
+[RpcClient]
 public partial class RpcTestServiceClient : IRpcTestService
 {
-  public void Evelien2()
+  public async Task<Company> Evelien2()
   {
-    Client.Execute<CompanyFindByIdResponse>(new CompanyFindByIdRequest()
+    var result = await Client.Execute<CompanyFindByIdResponse>(new CompanyFindByIdRequest()
     {
 
-    })
-    CompanySaveRequest
-
+    });
+    return result.Result;
   }
 
 }
