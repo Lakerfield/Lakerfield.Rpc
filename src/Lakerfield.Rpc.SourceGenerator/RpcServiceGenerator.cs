@@ -250,7 +250,12 @@ namespace Lakerfield.Rpc
     return null;
   }
 
-
+  bool HasMethod(INamedTypeSymbol? typeSymbol, string methodName)
+  {
+    if (typeSymbol == null)
+      return false;
+    return typeSymbol.GetMembers().OfType<IMethodSymbol>().Any(m => m.Name == methodName);
+  }
 
 
 

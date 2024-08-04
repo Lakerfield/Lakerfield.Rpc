@@ -1,4 +1,5 @@
-﻿using Lakerfield.Rpc;
+﻿using System;
+using Lakerfield.Rpc;
 
 namespace Lakerfield.RpcTest;
 
@@ -9,8 +10,23 @@ public partial class RpcTestServiceServer : Lakerfield.Rpc.LakerfieldRpcServer<I
     // {
     // }
 
-    // public override ILakerfieldRpcMessageRouter CreateConnectionMessageRouter(LakerfieldRpcServerConnection connection)
-    // {
-    //   throw new System.NotImplementedException();
-    // }
+    public override ILakerfieldRpcMessageRouter CreateConnectionMessageRouter(LakerfieldRpcServerConnection connection)
+    {
+      return new LakerfieldRpcMessageRouter(null, connection);
+    }
+
+
+    public partial class RpcTestServiceServerMessageRouter//ClientConnection
+    {
+
+      public RpcTestServiceServerMessageRouter(LakerfieldRpcServerConnection<IRpcTestService> connection)
+      {
+
+      }
+
+      public System.Threading.Tasks.Task<Lakerfield.RpcTest.Models.Company> CompanyFindById(System.Guid id)
+      {
+        throw new NotImplementedException();
+      }
+    }
 }

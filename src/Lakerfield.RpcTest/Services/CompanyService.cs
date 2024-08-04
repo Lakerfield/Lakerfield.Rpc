@@ -10,7 +10,7 @@ public partial interface IRpcTestService
     Task<Company> CompanyFindById(Guid id);
     Task<Company[]> CompanyFindAll();
     Task<Company> CompanySave(Company entity);
-    Task CompanyDelete(Company entity);
+    Task<bool> CompanyDelete(Company entity);
 
     Task<(Company, string)> CompanyTest(Company entity, Company entity2, string wouter, int bert);
 }

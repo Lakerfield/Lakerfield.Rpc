@@ -14,6 +14,8 @@ public partial class RpcServiceGenerator
     var className = classSymbol.Name;
     var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
 
+    var nestedClassSymbol = classSymbol.GetTypeMembers().FirstOrDefault(t => t.Name == $"{className}MessageRouter");
+
     var sourceBuilder = new StringBuilder();
     var switchSourceBuilder = new StringBuilder();
     var methodSourceBuilder = new StringBuilder();
@@ -24,34 +26,58 @@ public partial class RpcServiceGenerator
 
                              """);
 
+    var serviceSymbol = classSymbol.BaseType?.TypeArguments.FirstOrDefault() as INamedTypeSymbol;
 
 
     // Implement each method from the interface
     //foreach (var member in interfaceSymbol.GetMembers().OfType<IMethodSymbol>())
-    foreach (var member in GetAllInterfaceMembersIncludingInherited(classSymbol).OfType<IMethodSymbol>())
+    foreach (var member in GetAllInterfaceMembersIncludingInherited(serviceSymbol).OfType<IMethodSymbol>())
     {
       var methodName = member.Name;
       var returnType = member.ReturnType.ToDisplayString();
       var returnTypeExTask = GetGenericTypeArgument(member.ReturnType);
       var parameters = string.Join(", ", member.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
-      var switchParameters = string.Join(", ", member.Parameters.Select(p => $"x.{p.Name}"));
+      var switchParameters = string.Join(", ", member.Parameters.Select(p => $"request._{p.Name}"));
 
       switchSourceBuilder.Append($$"""
-                                   {{methodName}}Request x => {{methodName}}({{switchParameters}});
+                                             {{methodName}}Request request => _{{methodName}}(request),
 
                                    """);
 
-      methodSourceBuilder.Append($$"""
-                                       internal partial {{returnType}} {{methodName}}({{parameters}});
+      var methodPropertiesSourceBuilder = new StringBuilder();
+      foreach (var memberParameter in member.Parameters)
+      {
+        methodPropertiesSourceBuilder.AppendLine($"        public {memberParameter.Type} _{memberParameter.Name} {{ get; set; }}");
+      }
 
-                                       public class {{methodName}}Request : Lakerfield.Rpc.RpcMessage
-                                       {
-                                         public {{member.Parameters.FirstOrDefault()?.Type}} X { get; set; }
-                                       }
-                                       public class {{methodName}}Response: Lakerfield.Rpc.RpcMessage
-                                       {
-                                         public {{returnTypeExTask}} Result { get; set; }
-                                       }
+      if (!HasMethod(nestedClassSymbol, methodName))
+        methodSourceBuilder.Append($$"""
+                                           public {{returnType}} {{methodName}}({{parameters}})
+                                           {
+                                             throw new NotImplementedException();
+                                           }
+
+                                     """);
+
+      methodSourceBuilder.Append($$"""
+                                         [EditorBrowsable(EditorBrowsableState.Never)]
+                                         public async Task<Lakerfield.Rpc.RpcMessage> _{{methodName}}({{methodName}}Request request)
+                                         {
+                                           return new {{methodName}}Response()
+                                           {
+                                             Result = await {{methodName}}({{switchParameters}}).ConfigureAwait(false)
+                                           };
+                                         }
+                                         [EditorBrowsable(EditorBrowsableState.Never)]
+                                         public class {{methodName}}Request : Lakerfield.Rpc.RpcMessage
+                                         {
+                                   {{methodPropertiesSourceBuilder.ToString()}}
+                                         }
+                                         [EditorBrowsable(EditorBrowsableState.Never)]
+                                         public class {{methodName}}Response: Lakerfield.Rpc.RpcMessage
+                                         {
+                                           public {{returnTypeExTask}} Result { get; set; }
+                                         }
 
 
                                    """);
@@ -60,7 +86,9 @@ public partial class RpcServiceGenerator
 
     sourceBuilder.Append($$"""
 using System;
+using System.ComponentModel;
 using System.Net;
+using System.Threading.Tasks;
 
 namespace {{namespaceName}}
 {
@@ -75,35 +103,35 @@ namespace {{namespaceName}}
     {
       return new Lakerfield.Rpc.LakerfieldRpcMessageRouter(connection);
     }
-  }
 
-  public partial class {{className}}MessageRouter : Lakerfield.Rpc.ILakerfieldRpcMessageRouter
-  {
-    public Lakerfield.Rpc.LakerfieldRpcServerConnection Connection { get; }
-
-    public void {{className}}MessageRouter(Lakerfield.Rpc.LakerfieldRpcServerConnection connection)
+    public partial class {{className}}MessageRouter : Lakerfield.Rpc.ILakerfieldRpcMessageRouter
     {
-      Connection = connection;
-    }
+      public Lakerfield.Rpc.LakerfieldRpcServerConnection Connection { get; }
 
-    public System.Threading.Task<Lakerfield.Rpc.RpcMessage> HandleMessage(Lakerfield.Rpc.RpcMessage message)
-    {
-      if (message == null)
-        throw new ArgumentNullException("message", "Cannot route null RpcMessage");
+      public void {{className}}MessageRouter(Lakerfield.Rpc.LakerfieldRpcServerConnection connection)
+      {
+        Connection = connection;
+      }
 
-      return message switch {
+      public Task<Lakerfield.Rpc.RpcMessage> HandleMessage(Lakerfield.Rpc.RpcMessage message)
+      {
+        if (message == null)
+          throw new ArgumentNullException("message", "Cannot route null RpcMessage");
+
+        return message switch {
 {{switchSourceBuilder.ToString()}}
-        _ => NotImplementedMessage(message)
-      };
-    }
+          _ => NotImplementedMessage(message)
+        };
+      }
 
-    private System.Threading.Task<Lakerfield.Rpc.RpcMessage> NotImplementedMessage(Lakerfield.Rpc.RpcMessage message)
-    {
-      throw new NotImplementedException(string.Format("Message {0} not implemented", message.GetType().Name));
-    }
+      private Task<Lakerfield.Rpc.RpcMessage> NotImplementedMessage(Lakerfield.Rpc.RpcMessage message)
+      {
+        throw new NotImplementedException(string.Format("Message {0} not implemented", message.GetType().Name));
+      }
 
 {{methodSourceBuilder.ToString()}}
 
+    }
   }
 }
 

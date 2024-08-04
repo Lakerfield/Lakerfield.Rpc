@@ -2,12 +2,12 @@
 
 namespace Lakerfield.Rpc;
 
-[RpcService]
+//[RpcService]
 public partial interface ISampleRpcService
 {
     Task<string> GetHelloWorldAsync();
-    
-    
+
+
     //Task<>
-    
+
 }
