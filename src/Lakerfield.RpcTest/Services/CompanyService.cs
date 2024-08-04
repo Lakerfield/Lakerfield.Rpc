@@ -12,5 +12,5 @@ public partial interface IRpcTestService
     Task<Company> CompanySave(Company entity);
     Task CompanyDelete(Company entity);
 
-    Task CompanyTest(Company entity, Company entity2, string wouter, int bert);
+    Task<(Company, string)> CompanyTest(Company entity, Company entity2, string wouter, int bert);
 }

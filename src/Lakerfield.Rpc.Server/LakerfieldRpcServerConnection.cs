@@ -32,7 +32,17 @@ namespace Lakerfield.Rpc
     Closed
   }
 
-  public class LakerfieldRpcServerConnection
+  public abstract class LakerfieldRpcServerConnection
+  {
+    internal abstract void SendObservableOnNext(int observableId, object value);
+
+    internal abstract void SendObservableOnError(int observableId, Exception exception);
+
+    internal abstract void SendObservableOnComplete(int observableId);
+
+  }
+
+  public class LakerfieldRpcServerConnection<T> : LakerfieldRpcServerConnection
   {
     private static int _lastConnectionId = 0;
 
@@ -52,8 +62,8 @@ namespace Lakerfield.Rpc
 
     internal LakerfieldRpcServerConnection(
       TcpClient tcpClient,
-      Func<LakerfieldRpcServerConnection, ILakerfieldRpcMessageRouter> createMessageRouter,
-      LakerfieldRpcServerListener listener)
+      Func<LakerfieldRpcServerConnection<T>, ILakerfieldRpcMessageRouter> createMessageRouter,
+      LakerfieldRpcServer<T> listener)
     {
       _createdAt = DateTime.Now;
       _connectionId = Interlocked.Increment(ref _lastConnectionId);
@@ -352,7 +362,7 @@ namespace Lakerfield.Rpc
       SendMessage(reply);
     }
 
-    internal void SendObservableOnNext(int observableId, object value)
+    internal override void SendObservableOnNext(int observableId, object value)
     {
       var reply = new DrieNulSendMessage<RpcMessage>
       {
@@ -367,7 +377,7 @@ namespace Lakerfield.Rpc
       SendMessage(reply);
     }
 
-    internal void SendObservableOnError(int observableId, Exception exception)
+    internal override void SendObservableOnError(int observableId, Exception exception)
     {
       var reply = new DrieNulSendMessage<RpcMessage>
       {
@@ -388,7 +398,7 @@ namespace Lakerfield.Rpc
       { }
     }
 
-    internal void SendObservableOnComplete(int observableId)
+    internal override void SendObservableOnComplete(int observableId)
     {
       var reply = new DrieNulSendMessage<RpcMessage>
       {

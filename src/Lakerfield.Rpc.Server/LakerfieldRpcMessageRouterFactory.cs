@@ -1,8 +1,8 @@
 namespace Lakerfield.Rpc;
 
-public class LakerfieldRpcMessageRouterFactory
+public class LakerfieldRpcMessageRouterFactory<T>
 {
-  public ILakerfieldRpcMessageRouter CreateRouter(LakerfieldRpcServerConnection connection)
+  public ILakerfieldRpcMessageRouter CreateRouter(LakerfieldRpcServerConnection<T> connection)
   {
     return new LakerfieldRpcMessageRouter(null, connection);
   }
