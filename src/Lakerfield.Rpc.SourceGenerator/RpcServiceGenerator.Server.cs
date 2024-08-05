@@ -13,6 +13,7 @@ public partial class RpcServiceGenerator
   {
     var className = classSymbol.Name;
     var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
+    var bsonClassName = TrimSuffix(className, "Server");
 
     var nestedClassSymbol = classSymbol.GetTypeMembers().FirstOrDefault(t => t.Name == $"{className}MessageRouter");
 
@@ -37,18 +38,12 @@ public partial class RpcServiceGenerator
       var returnType = member.ReturnType.ToDisplayString();
       var returnTypeExTask = GetGenericTypeArgument(member.ReturnType);
       var parameters = string.Join(", ", member.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
-      var switchParameters = string.Join(", ", member.Parameters.Select(p => $"request._{p.Name}"));
+      var switchParameters = string.Join(", ", member.Parameters.Select(p => $"request.{CapitalizeFirstLetter(p.Name)}"));
 
       switchSourceBuilder.Append($$"""
                                              {{methodName}}Request request => _{{methodName}}(request),
 
                                    """);
-
-      var methodPropertiesSourceBuilder = new StringBuilder();
-      foreach (var memberParameter in member.Parameters)
-      {
-        methodPropertiesSourceBuilder.AppendLine($"        public {memberParameter.Type} _{memberParameter.Name} {{ get; set; }}");
-      }
 
       if (!HasMethod(nestedClassSymbol, methodName))
         methodSourceBuilder.Append($$"""
@@ -68,17 +63,6 @@ public partial class RpcServiceGenerator
                                              Result = await {{methodName}}({{switchParameters}}).ConfigureAwait(false)
                                            };
                                          }
-                                         [EditorBrowsable(EditorBrowsableState.Never)]
-                                         public class {{methodName}}Request : Lakerfield.Rpc.RpcMessage
-                                         {
-                                   {{methodPropertiesSourceBuilder.ToString()}}
-                                         }
-                                         [EditorBrowsable(EditorBrowsableState.Never)]
-                                         public class {{methodName}}Response: Lakerfield.Rpc.RpcMessage
-                                         {
-                                           public {{returnTypeExTask}} Result { get; set; }
-                                         }
-
 
                                    """);
       //, CancellationToken cancellationToken = default
@@ -99,16 +83,21 @@ namespace {{namespaceName}}
     {
     }
 
-    public override Lakerfield.Rpc.ILakerfieldRpcMessageRouter CreateConnectionMessageRouter(LakerfieldRpcServerConnection connection)
+    public override void InitBsonClassMaps()
     {
-      return new Lakerfield.Rpc.LakerfieldRpcMessageRouter(connection);
+      {{bsonClassName}}BsonConfigurator.Configure();
     }
 
-    public partial class {{className}}MessageRouter : Lakerfield.Rpc.ILakerfieldRpcMessageRouter
+    //public override Lakerfield.Rpc.ILakerfieldRpcClientMessageHandler CreateConnectionMessageRouter(Lakerfield.Rpc.LakerfieldRpcServerConnection connection)
+    //{
+    //  return new Lakerfield.Rpc.LakerfieldRpcMessageRouter(connection);
+    //}
+
+    public partial class ClientConnectionMessageHandler : Lakerfield.Rpc.ILakerfieldRpcClientMessageHandler
     {
       public Lakerfield.Rpc.LakerfieldRpcServerConnection Connection { get; }
 
-      public void {{className}}MessageRouter(Lakerfield.Rpc.LakerfieldRpcServerConnection connection)
+      public ClientConnectionMessageHandler(Lakerfield.Rpc.LakerfieldRpcServerConnection connection)
       {
         Connection = connection;
       }
@@ -130,6 +119,12 @@ namespace {{namespaceName}}
       }
 
 {{methodSourceBuilder.ToString()}}
+
+
+      public Lakerfield.Rpc.NetworkObservable HandleObservable(Lakerfield.Rpc.RpcMessage message)
+      {
+        throw new NotImplementedException();
+      }
 
     }
   }

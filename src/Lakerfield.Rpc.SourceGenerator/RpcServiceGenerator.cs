@@ -21,9 +21,9 @@ using System;
 
 namespace Lakerfield.Rpc
 {
-  //internal sealed class RpcServiceAttribute : Attribute
-  //{
-  //}
+  internal sealed class RpcServiceAttribute : Attribute
+  {
+  }
   internal sealed class RpcServerAttribute : Attribute
   {
   }
@@ -77,7 +77,8 @@ namespace Lakerfield.Rpc
       {
         if (symbol is not null)
         {
-          GenerateInterfaceImplementation(spc, (INamedTypeSymbol)symbol, hasServer, hasClient);
+          //GenerateInterfaceImplementation(spc, (INamedTypeSymbol)symbol, hasServer, hasClient);
+          GenerateServiceClasses(spc, (INamedTypeSymbol)symbol, hasServer, hasClient);
         }
       }
     });
@@ -340,4 +341,23 @@ public abstract class {abstractClassName} : {interfaceName}
     }
   }
 
+  public static string CapitalizeFirstLetter(string input)
+  {
+    if (string.IsNullOrEmpty(input))
+    {
+      return input;
+    }
+
+    return char.ToUpper(input[0]) + input.Substring(1);
+  }
+
+  public static string TrimSuffix(string input, string suffix)
+  {
+    if (input.EndsWith(suffix))
+    {
+      return input.Substring(0, input.Length - suffix.Length);
+    }
+
+    return input;
+  }
 }

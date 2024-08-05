@@ -10,23 +10,23 @@ public partial class RpcTestServiceServer : Lakerfield.Rpc.LakerfieldRpcServer<I
     // {
     // }
 
-    public override ILakerfieldRpcMessageRouter CreateConnectionMessageRouter(LakerfieldRpcServerConnection connection)
+    public override ILakerfieldRpcClientMessageHandler CreateConnectionMessageRouter(LakerfieldRpcServerConnection connection)
     {
-      return new LakerfieldRpcMessageRouter(null, connection);
+      return new ClientConnectionMessageHandler(connection);
     }
 
 
-    public partial class RpcTestServiceServerMessageRouter//ClientConnection
+
+
+    public partial class ClientConnectionMessageHandler
     {
 
-      public RpcTestServiceServerMessageRouter(LakerfieldRpcServerConnection<IRpcTestService> connection)
+      public ClientConnectionMessageHandler(LakerfieldRpcServerConnection<IRpcTestService> connection)
       {
 
       }
 
-      public System.Threading.Tasks.Task<Lakerfield.RpcTest.Models.Company> CompanyFindById(System.Guid id)
-      {
-        throw new NotImplementedException();
-      }
+
+
     }
 }

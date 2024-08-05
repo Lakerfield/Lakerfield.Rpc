@@ -5,15 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using Lakerfield.Rpc.Helpers;
 
-namespace Lakerfield.Rpc.Client
+namespace Lakerfield.Rpc
 {
-  public class ClientExportNetworkService : IClientExportService
+  public class ClientExportNetworkService //: IClientExportService
   {
     private NetworkClient _networkClient;
     public Task<string> Connected { get { return _networkClient.Connected; } }
     public string ApplicationName { get { return "ClientExport.Client"; } }
 
-    public IEktCollection Ekt { get; private set; }
+    //public IEktCollection Ekt { get; private set; }
 
     /*
     public Task Log(LogLevel logLevel, string message, params object[] args)
@@ -38,7 +38,7 @@ namespace Lakerfield.Rpc.Client
     {
       _networkClient = new NetworkClient(hostname);
 
-      Ekt = new Collections.EktCollection(_networkClient);
+      //Ekt = new Collections.EktCollection(_networkClient);
 
       _pingTask = StartPing();
     }
@@ -49,7 +49,7 @@ namespace Lakerfield.Rpc.Client
       {
         while (true)
         {
-          await System.Ping().ConfigureAwait(false);
+          //await System.Ping().ConfigureAwait(false);
           await Task.Delay(60000).ConfigureAwait(false);
         }
       }
@@ -59,13 +59,6 @@ namespace Lakerfield.Rpc.Client
         throw;
       }
     }
-
-
-    static ClientExportNetworkService()
-    {
-      BsonConfiguration.Configure();
-    }
-
 
   }
 }

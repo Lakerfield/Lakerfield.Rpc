@@ -1,4 +1,5 @@
 ﻿using System;
+using Lakerfield.Bson.Serialization;
 
 namespace Lakerfield.Rpc;
 
@@ -8,8 +9,7 @@ public static class Program
   {
     Console.WriteLine("Hello");
 
-    var x = new SampleRpcServiceImplementation();
-
+    //var x = new SampleRpcServiceImplementation();
 
   }
 }

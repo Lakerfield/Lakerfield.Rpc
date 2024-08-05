@@ -50,7 +50,7 @@ namespace Lakerfield.Rpc
     private readonly int _connectionId;
     private DrieNulConnectionState _state;
     private TcpClient? _tcpClient;
-    private readonly ILakerfieldRpcMessageRouter _messageRouter;
+    private readonly ILakerfieldRpcClientMessageHandler _clientMessageHandler;
     private Stream? _stream; // either a NetworkStream or an SslStream wrapping a NetworkStream
     private readonly DateTime _createdAt;
     private DateTime _lastUsedAt; // set every time the connection is Released
@@ -62,14 +62,14 @@ namespace Lakerfield.Rpc
 
     internal LakerfieldRpcServerConnection(
       TcpClient tcpClient,
-      Func<LakerfieldRpcServerConnection<T>, ILakerfieldRpcMessageRouter> createMessageRouter,
+      Func<LakerfieldRpcServerConnection<T>, ILakerfieldRpcClientMessageHandler> createMessageRouter,
       LakerfieldRpcServer<T> listener)
     {
       _createdAt = DateTime.Now;
       _connectionId = Interlocked.Increment(ref _lastConnectionId);
       _state = DrieNulConnectionState.Initial;
       _tcpClient = tcpClient;
-      _messageRouter = createMessageRouter(this);
+      _clientMessageHandler = createMessageRouter(this);
 
       Console.WriteLine(@"Connection {0} opened", _connectionId);
       Globals.Service.Log(LogLevel.Debug, @"Connection {0} opened", _connectionId)
@@ -266,7 +266,7 @@ namespace Lakerfield.Rpc
 
         try
         {
-          reply.Message = await _messageRouter.HandleMessage(request.Message).ConfigureAwait(false);
+          reply.Message = await _clientMessageHandler.HandleMessage(request.Message).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -288,7 +288,7 @@ namespace Lakerfield.Rpc
         };
         try
         {
-          var networkObservable = _messageRouter.HandleObservable(request.Message);
+          var networkObservable = _clientMessageHandler.HandleObservable(request.Message);
           lock (_connectionLock)
             _networkObservables.Add(request.ObservableId, networkObservable);
           networkObservable.Subscribe(request.ObservableId, this);

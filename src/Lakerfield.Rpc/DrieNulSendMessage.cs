@@ -104,13 +104,13 @@ namespace Lakerfield.Rpc
     // protected methods
     protected void WriteMessageHeaderTo(BsonBinaryWriter streamWriter)
     {
-      streamWriter.WriteInt32(0); // messageLength will be backpatched later
-      streamWriter.WriteInt32(RequestId);
-      streamWriter.WriteInt32(ResponseTo);
-      streamWriter.WriteInt32((int)Opcode);
-      streamWriter.WriteInt32((int)Flags);
-      streamWriter.WriteInt32(ObservableId);
-      streamWriter.WriteInt32(0); // messageObjectCount will be backpatched later
+      streamWriter.BsonStream.WriteInt32(0); // messageLength will be backpatched later
+      streamWriter.BsonStream.WriteInt32(RequestId);
+      streamWriter.BsonStream.WriteInt32(ResponseTo);
+      streamWriter.BsonStream.WriteInt32((int)Opcode);
+      streamWriter.BsonStream.WriteInt32((int)Flags);
+      streamWriter.BsonStream.WriteInt32(ObservableId);
+      streamWriter.BsonStream.WriteInt32(0); // messageObjectCount will be backpatched later
     }
 
     protected int WriteBodyTo(BsonBinaryWriter streamWriter)
@@ -150,7 +150,7 @@ namespace Lakerfield.Rpc
       var streamWriter = new BsonBinaryWriter(stream);
       var currentPosition = stream.Position;
       stream.Position = position;
-      streamWriter.WriteInt32(value);
+      streamWriter.BsonStream.WriteInt32(value);
       stream.Position = currentPosition;
     }
 

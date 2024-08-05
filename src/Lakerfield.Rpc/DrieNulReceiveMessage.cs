@@ -95,8 +95,9 @@ namespace Lakerfield.Rpc
     // internal methods
     public void ReadFrom(Stream stream, int messageLength = -1)
     {
-      var streamReader = new BsonBinaryReader(stream);
-      ReadMessageHeaderFrom(streamReader, messageLength);
+      var bsonStream = new BsonStreamAdapter(stream);
+      //var streamReader = new BsonBinaryReader(stream);
+      ReadMessageHeaderFrom(bsonStream, messageLength);
 
       if ((Flags & MessageFlags.Exception) != 0)
       {
@@ -128,15 +129,15 @@ namespace Lakerfield.Rpc
 
 
     // protected methods
-    protected void ReadMessageHeaderFrom(BsonBinaryReader streamReader, int messageLength)
+    protected void ReadMessageHeaderFrom(BsonStream bsonStream, int messageLength)
     {
-      MessageLength = messageLength >= 0 ? messageLength : streamReader.ReadInt32();
-      RequestId = streamReader.ReadInt32();
-      ResponseTo = streamReader.ReadInt32();
-      Opcode = (MessageOpcode)streamReader.ReadInt32();
-      Flags = (MessageFlags)streamReader.ReadInt32();
-      ObservableId = streamReader.ReadInt32();
-      _objectCount = streamReader.ReadInt32();
+      MessageLength = messageLength >= 0 ? messageLength : bsonStream.ReadInt32();
+      RequestId = bsonStream.ReadInt32();
+      ResponseTo = bsonStream.ReadInt32();
+      Opcode = (MessageOpcode)bsonStream.ReadInt32();
+      Flags = (MessageFlags)bsonStream.ReadInt32();
+      ObservableId = bsonStream.ReadInt32();
+      _objectCount = bsonStream.ReadInt32();
     }
 
 

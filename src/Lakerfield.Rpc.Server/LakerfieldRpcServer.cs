@@ -16,9 +16,10 @@ namespace Lakerfield.Rpc
     private readonly List<LakerfieldRpcServerConnection<T>> _connections = new List<LakerfieldRpcServerConnection<T>>();
 
 
-    public abstract ILakerfieldRpcMessageRouter CreateConnectionMessageRouter(LakerfieldRpcServerConnection connection);
+    public abstract ILakerfieldRpcClientMessageHandler CreateConnectionMessageRouter(LakerfieldRpcServerConnection connection);
+    public abstract void InitBsonClassMaps();
 
-    public LakerfieldRpcServer(LakerfieldRpcMessageRouterFactory<T> messageRouterFactory, IPAddress ipAddress, int port)
+    public LakerfieldRpcServer(IPAddress ipAddress, int port)
     {
       _tcpListener = new TcpListener(ipAddress, port);
     }
@@ -39,6 +40,7 @@ namespace Lakerfield.Rpc
 
     public void Start()
     {
+      InitBsonClassMaps();
       _tcpListener.Start();
 
       _acceptNewClientsTask = AcceptNewClientsLoopAsync();
@@ -82,13 +84,6 @@ namespace Lakerfield.Rpc
       Globals.Service.Log(LogLevel.Debug, @"Connection {0} closed - {1} messages handled", connection.ConnectionId, connection.MessageCounter)
         .Wait();
     }
-
-
-    static LakerfieldRpcServerListener()
-    {
-      BsonConfiguration.Configure();
-    }
-
 
   }
 }

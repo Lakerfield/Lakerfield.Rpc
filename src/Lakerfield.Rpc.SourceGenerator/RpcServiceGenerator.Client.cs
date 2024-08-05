@@ -13,6 +13,7 @@ public partial class RpcServiceGenerator
   {
     var className = classSymbol.Name;
     var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
+    var bsonClassName = TrimSuffix(className, "Client");
     var sourceBuilder = new StringBuilder($$"""
                                             using System;
 
@@ -24,6 +25,7 @@ public partial class RpcServiceGenerator
                                                 public Lakerfield.Rpc.NetworkClient Client { get; }
                                                 public {{className}}(Lakerfield.Rpc.NetworkClient client)
                                                 {
+                                                  {{bsonClassName}}BsonConfigurator.Configure();
                                                   Client = client;
                                                 }
 
@@ -37,7 +39,7 @@ public partial class RpcServiceGenerator
       var returnType = member.ReturnType.ToDisplayString();
       var returnTypeExTask = GetGenericTypeArgument(member.ReturnType);
       var parameters = string.Join(", ", member.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
-      var parameters2 = string.Join(", ", member.Parameters.Select(p => $"{p.Name.First().ToString().ToUpper() + p.Name.Substring(1)} = {p.Name}"));
+      var parameters2 = string.Join(", ", member.Parameters.Select(p => $"{CapitalizeFirstLetter(p.Name)} = {p.Name}"));
 
       sourceBuilder.Append($$"""
                                  public async {{returnType}} {{methodName}}({{parameters}})
@@ -45,33 +47,6 @@ public partial class RpcServiceGenerator
                                    var request = new {{methodName}}Request() { {{parameters2}} };
                                    var response = await Client.Execute<{{methodName}}Response>(request).ConfigureAwait(false);
                                    {{(returnTypeExTask == null ? "" : "return response.Result;")}}
-                                 }
-
-                                 public class {{methodName}}Request : Lakerfield.Rpc.RpcMessage
-                                 {
-
-                             """);
-
-      foreach (var parameter in member.Parameters)
-        sourceBuilder.Append($$"""
-                                   public {{parameter.Type}} {{parameter.Name.First().ToString().ToUpper() + parameter.Name.Substring(1)}} { get; set; }
-
-                             """);
-
-      //returnTypeExTask
-      sourceBuilder.Append($$"""
-
-                                 }
-                                 public class {{methodName}}Response: Lakerfield.Rpc.RpcMessage
-                                 {
-
-                             """);
-      if (returnTypeExTask != null)
-        sourceBuilder.Append($$"""
-                                   public {{returnTypeExTask}} Result { get; set; }
-
-                             """);
-      sourceBuilder.Append($$"""
                                  }
 
 

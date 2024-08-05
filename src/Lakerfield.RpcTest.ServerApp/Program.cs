@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Net;
-using Lakerfield.Rpc;
+using Lakerfield.RpcTest;
 
 Console.WriteLine("Hello, World!");
 
-var listener = new Lakerfield.Rpc.LakerfieldRpcServerListener(
-  new LakerfieldRpcMessageRouterFactory(),
+var listener = new RpcTestServiceServer(
   IPAddress.Loopback,
   3000);
 
