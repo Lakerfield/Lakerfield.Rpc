@@ -1,9 +1,8 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Lakerfield.RpcTest;
 
 Console.WriteLine("Hello, World!");
-await Task.Delay(1000);
 
 var clientX = new Lakerfield.Rpc.NetworkClient("localhost", 3000);
 

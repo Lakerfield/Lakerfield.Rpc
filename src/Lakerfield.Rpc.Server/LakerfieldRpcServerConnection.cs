@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -231,6 +231,14 @@ namespace Lakerfield.Rpc
         }
 
         closeConnection: ;
+      }
+      catch (IOException ioException) when (ioException.InnerException is SocketException socketException &&
+                                            socketException.SocketErrorCode switch
+                                            {
+                                              SocketError.ConnectionReset => true,
+                                              _ => false
+                                            })
+      {
       }
       catch (Exception ex)
       {
@@ -487,7 +495,7 @@ namespace Lakerfield.Rpc
       {
         message.WriteTo(stream);
         SendMessage(stream, message.RequestId);
-      }
+       }
     }
 
     // private methods

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -65,7 +65,6 @@ namespace Lakerfield.Rpc
             tcpClient,
             CreateConnectionMessageRouter,
             this);
-          Console.WriteLine(@"Connection {0} opened", connection.ConnectionId);
           lock (_connections)
             _connections.Add(connection);
         }

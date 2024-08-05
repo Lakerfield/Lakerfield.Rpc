@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,7 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using Lakerfield.Bson.IO;
+using Lakerfield.Rpc.Helpers;
 
 namespace Lakerfield.Rpc
 {
@@ -244,7 +244,7 @@ namespace Lakerfield.Rpc
     }
 
 
-    private void ReceiveMessagesLoop()
+    private async void ReceiveMessagesLoop()
     {
       try
       {
@@ -253,17 +253,32 @@ namespace Lakerfield.Rpc
         if (readTimeout != 0)
           networkStream.ReadTimeout = readTimeout;
 
-        while (true)
-        {
-          _lastUsedAt = DateTime.UtcNow;
-          using (var byteBuffer = ByteBufferFactory.LoadLengthPrefixedDataFrom(networkStream))
-          using (var stream = new ByteBufferStream(byteBuffer, ownsBuffer: true))
-          {
-            var reply = new DrieNulReceiveMessage<RpcMessage>();
-            reply.ReadFrom(stream);
+        int bytesRead;
+        var bytes = new Byte[256];
 
-            Task.Run(() => HandleMessage(reply));
+        // Read 4 bytes (int32) for message length
+        while ((bytesRead = await networkStream.ReadAsync(bytes, 0, 4)) != 0)
+        {
+          while (bytesRead < 4)
+          {
+            int x;
+            if ((x = await networkStream.ReadAsync(bytes, bytesRead, 4 - bytesRead)) == 0)
+              break;
+            bytesRead += x;
           }
+
+          var messageLength = ReadBsonInt32(bytes);
+          _lastUsedAt = DateTime.UtcNow;
+
+          var message = new DrieNulReceiveMessage<RpcMessage>();
+          using (var memoryStream = new MemoryStream(messageLength - 4))
+          {
+            await networkStream.CopyStreamToStreamAsync(memoryStream, messageLength - 4);
+            memoryStream.Position = 0;
+
+            message.ReadFrom(memoryStream, messageLength);
+          }
+          _ = Task.Run(() => HandleMessage(message));
           _messagesRecieved++;
         }
       }
@@ -279,6 +294,11 @@ namespace Lakerfield.Rpc
         _connectedTaskCompletionSource.TrySetCanceled();
         Dispose();
         //Close();
+      }
+
+      int ReadBsonInt32(byte[] buffer)
+      {
+        return buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] << 24);
       }
     }
 

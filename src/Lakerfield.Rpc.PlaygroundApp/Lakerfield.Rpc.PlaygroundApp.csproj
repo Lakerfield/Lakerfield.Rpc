@@ -9,8 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Lakerfield.Rpc.SourceGenerator\Lakerfield.Rpc.SourceGenerator.csproj" PrivateAssets="all" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
-    <ProjectReference Include="..\Lakerfield.Rpc\Lakerfield.Rpc.csproj"/>
+    <ProjectReference Include="..\Lakerfield.Rpc.SourceGenerator\Lakerfield.Rpc.SourceGenerator.csproj" PrivateAssets="all" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Lakerfield.RpcTest\Lakerfield.RpcTest.csproj" />
+    <ProjectReference Include="..\Lakerfield.Rpc\Lakerfield.Rpc.csproj" />
   </ItemGroup>
 
 </Project>
