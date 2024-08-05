@@ -15,7 +15,7 @@ public partial class RpcServiceGenerator
     var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
     var bsonClassName = TrimSuffix(className, "Server");
 
-    var nestedClassSymbol = classSymbol.GetTypeMembers().FirstOrDefault(t => t.Name == $"{className}MessageRouter");
+    var nestedClassSymbol = classSymbol.GetTypeMembers().FirstOrDefault(t => t.Name == $"ClientConnectionMessageHandler");
 
     var sourceBuilder = new StringBuilder();
     var switchSourceBuilder = new StringBuilder();
@@ -45,14 +45,17 @@ public partial class RpcServiceGenerator
 
                                    """);
 
+      //Log(context, $"HasMethod {methodName}, {nestedClassSymbol}");
       if (!HasMethod(nestedClassSymbol, methodName))
         methodSourceBuilder.Append($$"""
                                            public {{returnType}} {{methodName}}({{parameters}})
                                            {
-                                             throw new NotImplementedException();
+                                             throw new NotImplementedException("{{methodName}} of {{serviceSymbol.Name}} is not implemented");
                                            }
 
                                      """);
+      else
+        methodSourceBuilder.AppendLine($"// {methodName} already implemented");
 
       methodSourceBuilder.Append($$"""
                                          [EditorBrowsable(EditorBrowsableState.Never)]
@@ -107,6 +110,7 @@ namespace {{namespaceName}}
         if (message == null)
           throw new ArgumentNullException("message", "Cannot route null RpcMessage");
 
+System.Console.WriteLine($"new message {message.GetType().Name}");
         return message switch {
 {{switchSourceBuilder.ToString()}}
           _ => NotImplementedMessage(message)

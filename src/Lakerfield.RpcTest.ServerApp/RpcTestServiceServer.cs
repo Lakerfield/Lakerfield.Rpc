@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Lakerfield.Rpc;
 
 namespace Lakerfield.RpcTest;
@@ -26,7 +27,16 @@ public partial class RpcTestServiceServer : Lakerfield.Rpc.LakerfieldRpcServer<I
 
       }
 
-
+      public async Task<Models.Company> CompanyFindById(System.Guid id)
+      {
+        await Task.Delay(100);
+        return new Models.Company()
+        {
+          Id = id.ToString(),
+          Name = "The company",
+          Remarks = "cool",
+        };
+      }
 
     }
 }

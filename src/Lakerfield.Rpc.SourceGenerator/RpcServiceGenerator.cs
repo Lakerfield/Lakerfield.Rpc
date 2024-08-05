@@ -360,4 +360,31 @@ public abstract class {abstractClassName} : {interfaceName}
 
     return input;
   }
+
+  private static void Log(GeneratorExecutionContext context, string message)
+  {
+    var descriptor = new DiagnosticDescriptor(
+      id: "SG0001",
+      title: "Source Generator Log",
+      messageFormat: "{0}",
+      category: "SourceGenerator",
+      DiagnosticSeverity.Info,
+      isEnabledByDefault: true);
+
+    var diagnostic = Diagnostic.Create(descriptor, Location.None, message);
+    context.ReportDiagnostic(diagnostic);
+  }
+  private static void Log(SourceProductionContext context, string message)
+  {
+    var descriptor = new DiagnosticDescriptor(
+      id: "SG0001",
+      title: "Source Generator Log",
+      messageFormat: "{0}",
+      category: "SourceGenerator",
+      DiagnosticSeverity.Warning,
+      isEnabledByDefault: true);
+
+    var diagnostic = Diagnostic.Create(descriptor, Location.None, message);
+    context.ReportDiagnostic(diagnostic);
+  }
 }
