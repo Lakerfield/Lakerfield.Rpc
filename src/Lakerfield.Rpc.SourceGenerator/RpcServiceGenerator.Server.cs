@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -13,7 +13,6 @@ public partial class RpcServiceGenerator
   {
     var className = classSymbol.Name;
     var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
-    var bsonClassName = TrimSuffix(className, "Server");
 
     var nestedClassSymbol = classSymbol.GetTypeMembers().FirstOrDefault(t => t.Name == $"ClientConnectionMessageHandler");
 
@@ -28,12 +27,17 @@ public partial class RpcServiceGenerator
                              """);
 
     var serviceSymbol = classSymbol.BaseType?.TypeArguments.FirstOrDefault() as INamedTypeSymbol;
+    var serviceNamespaceName = serviceSymbol.ContainingNamespace.ToDisplayString();
+    var bsonClassName = $"{serviceSymbol.Name.TrimStart('I')}";
 
 
     // Implement each method from the interface
     //foreach (var member in interfaceSymbol.GetMembers().OfType<IMethodSymbol>())
     foreach (var member in GetAllInterfaceMembersIncludingInherited(serviceSymbol).OfType<IMethodSymbol>())
     {
+      if (member.ReturnType.Name != "Task")
+        continue;
+
       var methodName = member.Name;
       var returnType = member.ReturnType.ToDisplayString();
       var returnTypeExTask = GetGenericTypeArgument(member.ReturnType);
@@ -76,10 +80,11 @@ using System;
 using System.ComponentModel;
 using System.Net;
 using System.Threading.Tasks;
+using {{serviceNamespaceName}};
 
 namespace {{namespaceName}}
 {
-  // server {{hasServer}} client {{hasClient}}
+  // server {{hasServer}} client {{hasClient}} from {{serviceSymbol.ToDisplayString()}}
   public partial class {{className}}
   {
     public {{className}}(IPAddress ipAddress, int port) : base (ipAddress, port)

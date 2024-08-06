@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -13,23 +13,18 @@ public partial class RpcServiceGenerator
   {
     var className = classSymbol.Name;
     var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
-    var bsonClassName = TrimSuffix(className, "Client");
-    var sourceBuilder = new StringBuilder($$"""
-                                            using System;
+    var serviceSymbol = classSymbol.Interfaces.FirstOrDefault();
+    var serviceNamespaceName = serviceSymbol.ContainingNamespace.ToDisplayString();
+    var bsonClassName = $"{serviceSymbol.Name.TrimStart('I')}";
 
-                                            namespace {{namespaceName}}
-                                            {
-                                            // server {{hasServer}} client {{hasClient}}
-                                              public partial class {{className}}
-                                              {
-                                                public Lakerfield.Rpc.NetworkClient Client { get; }
-                                                public {{className}}(Lakerfield.Rpc.NetworkClient client)
-                                                {
-                                                  {{bsonClassName}}BsonConfigurator.Configure();
-                                                  Client = client;
-                                                }
+    var sourceBuilder = new StringBuilder();
+    var methodSourceBuilder = new StringBuilder();
 
-                                            """);
+    if (!hasClient)
+      sourceBuilder.Append($$"""
+                             #error {{className}} needs a reference to the Lakerfield.Rpc.Client package
+
+                             """);
 
     // Implement each method from the interface
     //foreach (var member in interfaceSymbol.GetMembers().OfType<IMethodSymbol>())
@@ -41,25 +36,41 @@ public partial class RpcServiceGenerator
       var parameters = string.Join(", ", member.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
       var parameters2 = string.Join(", ", member.Parameters.Select(p => $"{CapitalizeFirstLetter(p.Name)} = {p.Name}"));
 
-      sourceBuilder.Append($$"""
-                                 public async {{returnType}} {{methodName}}({{parameters}})
-                                 {
-                                   var request = new {{methodName}}Request() { {{parameters2}} };
-                                   var response = await Client.Execute<{{methodName}}Response>(request).ConfigureAwait(false);
-                                   {{(returnTypeExTask == null ? "" : "return response.Result;")}}
-                                 }
+      methodSourceBuilder.Append($$"""
+                                       public async {{returnType}} {{methodName}}({{parameters}})
+                                       {
+                                         var request = new {{methodName}}Request() { {{parameters2}} };
+                                         var response = await Client.Execute<{{methodName}}Response>(request).ConfigureAwait(false);
+                                         {{(returnTypeExTask == null ? "" : "return response.Result;")}}
+                                       }
 
 
-                             """);
+                                   """);
 
       //, CancellationToken cancellationToken = default
     }
 
-    sourceBuilder.Append("""
-                          }
-                         }
+    sourceBuilder.Append($$"""
+      using System;
+      using {{serviceNamespaceName}};
+      
+      namespace {{namespaceName}}
+      {
+      // server {{hasServer}} client {{hasClient}}
+        public partial class {{className}}
+        {
+          public Lakerfield.Rpc.NetworkClient Client { get; }
+          public {{className}}(Lakerfield.Rpc.NetworkClient client)
+          {
+            {{bsonClassName}}BsonConfigurator.Configure();
+            Client = client;
+          }
 
-                         """);
+          {{methodSourceBuilder.ToString()}}
+        }
+      }
+
+      """);
 
     // Add the generated source
     context.AddSource($"{className}.client.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));

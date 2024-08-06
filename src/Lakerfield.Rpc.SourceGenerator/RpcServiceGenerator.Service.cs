@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -25,12 +25,26 @@ public partial class RpcServiceGenerator
     {
       var methodName = member.Name;
       var returnType = member.ReturnType.ToDisplayString();
+      
       var returnTypeExTask = GetGenericTypeArgument(member.ReturnType);
+
+      if (member.ReturnType.Name != "Task" &&
+          member.ReturnType.Name != "IObservable")
+      {
+        requestResponseModelsSourceBuilder
+          .Append($$"""
+                    #warning Return type of {{interfaceName}}.{{methodName}} is not Task or IObservable but {{member.ReturnType.Name}}
+
+
+                    """);
+        continue;
+      }
 
       var methodPropertiesSourceBuilder = new StringBuilder();
       foreach (var memberParameter in member.Parameters)
       {
-        methodPropertiesSourceBuilder.AppendLine($"        public {memberParameter.Type} {CapitalizeFirstLetter(memberParameter.Name)} {{ get; set; }}");
+        methodPropertiesSourceBuilder.AppendLine(
+          $"        public {memberParameter.Type} {CapitalizeFirstLetter(memberParameter.Name)} {{ get; set; }}");
       }
 
       requestResponseModelsSourceBuilder
@@ -51,10 +65,11 @@ public partial class RpcServiceGenerator
 
       bsonClassMapsSourceBuilder
         .Append($$"""
-                         Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<{{methodName}}Request>(AutoMap);
-                         Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<{{methodName}}Response>(AutoMap);
+                        Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<{{methodName}}Request>(AutoMap);
+                        Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<{{methodName}}Response>(AutoMap);
 
-                   """);
+                  """);
+
       //, CancellationToken cancellationToken = default
     }
 
