@@ -13,4 +13,7 @@ public partial interface IRpcTestService
     Task<bool> CompanyDelete(Company entity);
 
     Task<(Company, string)> CompanyTest(Company entity, Company entity2, string wouter, int bert);
+
+    IObservable<Company> GetObservable(Guid id);
+
 }

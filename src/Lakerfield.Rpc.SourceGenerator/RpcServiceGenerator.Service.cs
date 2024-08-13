@@ -25,11 +25,11 @@ public partial class RpcServiceGenerator
     {
       var methodName = member.Name;
       var returnType = member.ReturnType.ToDisplayString();
-      
-      var returnTypeExTask = GetGenericTypeArgument(member.ReturnType);
 
-      if (member.ReturnType.Name != "Task" &&
-          member.ReturnType.Name != "IObservable")
+      var isTask = member.ReturnType.Name == "Task";
+      var isObservable = member.ReturnType.Name == "IObservable";
+
+      if (!isTask && !isObservable)
       {
         requestResponseModelsSourceBuilder
           .Append($$"""
@@ -40,6 +40,8 @@ public partial class RpcServiceGenerator
         continue;
       }
 
+      var returnTypeExTask = GetGenericTypeArgument(member.ReturnType);
+
       var methodPropertiesSourceBuilder = new StringBuilder();
       foreach (var memberParameter in member.Parameters)
       {
@@ -47,28 +49,41 @@ public partial class RpcServiceGenerator
           $"        public {memberParameter.Type} {CapitalizeFirstLetter(memberParameter.Name)} {{ get; set; }}");
       }
 
-      requestResponseModelsSourceBuilder
-        .Append($$"""
-                        //[EditorBrowsable(EditorBrowsableState.Never)]
-                        public class {{methodName}}Request : Lakerfield.Rpc.RpcMessage
-                        {
-                  {{methodPropertiesSourceBuilder.ToString()}}
-                        }
-                        //[EditorBrowsable(EditorBrowsableState.Never)]
-                        public class {{methodName}}Response: Lakerfield.Rpc.RpcMessage
-                        {
-                          public {{returnTypeExTask}} Result { get; set; }
-                        }
+      if (isTask || isObservable)
+      {  requestResponseModelsSourceBuilder
+          .Append($$"""
+                          //[EditorBrowsable(EditorBrowsableState.Never)]
+                          public class {{methodName}}Request : Lakerfield.Rpc.RpcMessage
+                          {
+                    {{methodPropertiesSourceBuilder.ToString()}}
+                          }
+
+                    """);
+        bsonClassMapsSourceBuilder
+          .Append($$"""
+                          Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<{{methodName}}Request>(AutoMap);
+
+                    """);
+      }
+
+      if (isTask)
+      {
+        requestResponseModelsSourceBuilder
+          .Append($$"""
+                          //[EditorBrowsable(EditorBrowsableState.Never)]
+                          public class {{methodName}}Response: Lakerfield.Rpc.RpcMessage
+                          {
+                            public {{returnTypeExTask}} Result { get; set; }
+                          }
 
 
-                  """);
+                    """);
+        bsonClassMapsSourceBuilder
+          .Append($$"""
+                          Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<{{methodName}}Response>(AutoMap);
 
-      bsonClassMapsSourceBuilder
-        .Append($$"""
-                        Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<{{methodName}}Request>(AutoMap);
-                        Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<{{methodName}}Response>(AutoMap);
-
-                  """);
+                    """);
+      }
 
       //, CancellationToken cancellationToken = default
     }
@@ -76,6 +91,7 @@ public partial class RpcServiceGenerator
     sourceBuilder.Append($$"""
 using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -96,13 +112,32 @@ namespace {{namespaceName}}
 
       _configured = true;
 
+      PreConfigure();
 {{bsonClassMapsSourceBuilder.ToString()}}
+      PostConfigure();
     }
+
+    static partial void PreConfigure();
+    static partial void PostConfigure();
 
     private static void AutoMap<T>(Lakerfield.Bson.Serialization.BsonClassMap<T> cm)
     {
       cm.AutoMap();
     }
+
+    private static void AutoMapAndSetGenericDiscriminator(Lakerfield.Bson.Serialization.BsonClassMap cm)
+    {
+      cm.AutoMap();
+
+      var cmType = cm.GetType();
+      var cmGenericType = cmType.GenericTypeArguments.First();
+      var discriminator = cmGenericType.Name;
+      var cmGenericTypeType = cmGenericType.GenericTypeArguments.FirstOrDefault();
+      if (cmGenericTypeType != null)
+        discriminator += cmGenericTypeType.Name;
+      cm.SetDiscriminator(discriminator);
+    }
+
   }
 
 }

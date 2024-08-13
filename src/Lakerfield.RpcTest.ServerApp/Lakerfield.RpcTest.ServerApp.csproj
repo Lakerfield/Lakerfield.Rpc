@@ -12,5 +12,9 @@
     <ProjectReference Include="..\Lakerfield.RpcTest\Lakerfield.RpcTest.csproj" />
     <ProjectReference Include="..\Lakerfield.Rpc.SourceGenerator\Lakerfield.Rpc.SourceGenerator.csproj" PrivateAssets="all" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Reactive" Version="6.0.1" />
+  </ItemGroup>
   
 </Project>

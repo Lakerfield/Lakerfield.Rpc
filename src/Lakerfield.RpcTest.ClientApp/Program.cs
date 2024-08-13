@@ -16,3 +16,10 @@ var company = await client.CompanyFindById(Guid.NewGuid());
 
 Console.WriteLine(company.Name);
 
+var subscription = client
+  .GetObservable(Guid.NewGuid())
+  .Subscribe(c => Console.WriteLine(c.Name));
+
+Console.ReadKey();
+
+subscription.Dispose();
