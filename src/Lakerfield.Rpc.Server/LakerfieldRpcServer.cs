@@ -12,16 +12,15 @@ namespace Lakerfield.Rpc
   public abstract class LakerfieldRpcServer<T>
   {
     private readonly TcpListener _tcpListener;
-    private Task _acceptNewClientsTask;
     private readonly List<LakerfieldRpcServerConnection<T>> _connections = new List<LakerfieldRpcServerConnection<T>>();
 
 
     public abstract ILakerfieldRpcClientMessageHandler CreateConnectionMessageRouter(LakerfieldRpcServerConnection connection);
     public abstract void InitBsonClassMaps();
 
-    public LakerfieldRpcServer(IPAddress ipAddress, int port)
+    public LakerfieldRpcServer(IPEndPoint endPoint)
     {
-      _tcpListener = new TcpListener(ipAddress, port);
+      _tcpListener = new TcpListener(endPoint.Address, endPoint.Port);
     }
 
     public LakerfieldRpcServerConnection<T>[] Connections
@@ -33,33 +32,22 @@ namespace Lakerfield.Rpc
       }
     }
 
-    public bool AcceptNewClientsRunning
-    {
-      get { return !_acceptNewClientsTask.IsCompleted; }
-    }
-
-    public void Start()
+    public async Task StartAsync(CancellationToken stoppingToken)
     {
       InitBsonClassMaps();
       _tcpListener.Start();
 
-      _acceptNewClientsTask = AcceptNewClientsLoopAsync();
+      await AcceptNewClientsLoopAsync(stoppingToken);
     }
 
-    public void Stop()
-    {
-      _tcpListener.Stop();
-    }
-
-
-    private async Task AcceptNewClientsLoopAsync()
+    private async Task AcceptNewClientsLoopAsync(CancellationToken stoppingToken)
     {
       try
       {
-        while (true)
+        while (!stoppingToken.IsCancellationRequested)
         {
           Console.WriteLine("Waiting for a connection... ");
-          var tcpClient = await _tcpListener.AcceptTcpClientAsync();
+          var tcpClient = await _tcpListener.AcceptTcpClientAsync(stoppingToken);
 
           var connection = new LakerfieldRpcServerConnection<T>(
             tcpClient,
@@ -72,6 +60,10 @@ namespace Lakerfield.Rpc
       catch (SocketException ex)
       {
         Console.WriteLine(@"Listener loop {0}", ex.Message);
+      }
+      finally
+      {
+        _tcpListener.Stop();
       }
     }
 

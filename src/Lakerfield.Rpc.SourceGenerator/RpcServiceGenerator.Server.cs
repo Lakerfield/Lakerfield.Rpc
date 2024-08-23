@@ -125,7 +125,7 @@ namespace {{namespaceName}}
   // server {{hasServer}} client {{hasClient}} from {{serviceSymbol.ToDisplayString()}}
   public partial class {{className}}
   {
-    public {{className}}(IPAddress ipAddress, int port) : base (ipAddress, port)
+    public {{className}}(IPEndPoint endPoint) : base (endPoint)
     {
     }
 
