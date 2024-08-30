@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,12 +7,12 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Lakerfield.Bson\src\Lakerfield.Bson\Lakerfield.Bson.csproj" />
+  <ItemGroup Condition="'$(UseLocalLakerfieldBson)' == 'true'">
+    <ProjectReference Include="$(LocalLakerfieldBsonRepo)/src/Lakerfield.Bson/Lakerfield.Bson.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Messages\" />
+  <ItemGroup Condition="'$(UseLocalLakerfieldBson)' == 'false'">
+    <PackageReference Include="Lakerfield.Bson" />
   </ItemGroup>
 
 </Project>

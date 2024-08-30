@@ -3,31 +3,42 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lakerfield.Rpc", "src\Lakerfield.Rpc\Lakerfield.Rpc.csproj", "{C79F2FF1-BD8A-41BF-9CDB-FAFB69984B0B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "0 - Solution items", "0 - Solution items", "{EF089DF6-FA3D-4CAE-BF49-1ED8CBF8A582}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
+		Directory.Build.props = Directory.Build.props
+		Directory.Build.targets = Directory.Build.targets
+		README.md = README.md
+	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lakerfield.Rpc.SourceGenerator", "src\Lakerfield.Rpc.SourceGenerator\Lakerfield.Rpc.SourceGenerator.csproj", "{F671B3B6-5009-4F8D-B516-C60CC17EC95D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "0 - External", "0 - External", "{E337848B-BB92-4043-A24E-6FC66BF644B7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lakerfield.Rpc.Server", "src\Lakerfield.Rpc.Server\Lakerfield.Rpc.Server.csproj", "{5F35A95E-390B-4942-9155-830A6D686748}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lakerfield.Rpc.Client", "src\Lakerfield.Rpc.Client\Lakerfield.Rpc.Client.csproj", "{CC0B4D92-EE6E-4255-B247-4B2AF483BDF5}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lakerfield.Rpc.PlaygroundApp", "src\Lakerfield.Rpc.PlaygroundApp\Lakerfield.Rpc.PlaygroundApp.csproj", "{09E0CD7E-F36E-4468-AA93-025AB975F144}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lakerfield.Bson", "..\Lakerfield.Bson\src\Lakerfield.Bson\Lakerfield.Bson.csproj", "{3C2957B8-216B-49F7-B206-499A6599521A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1 - Rpc", "1 - Rpc", "{383C4528-2CE6-4CA1-9702-2381EAD0BCA1}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "8 - Playground", "8 - Playground", "{EAADC0D2-AE8B-441B-A83B-152C75794211}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lakerfield.Rpc", "src\Lakerfield.Rpc\Lakerfield.Rpc.csproj", "{C79F2FF1-BD8A-41BF-9CDB-FAFB69984B0B}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "9 - TestApps", "9 - TestApps", "{F7272B31-6435-4A6E-BD4C-707237DE5E3B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lakerfield.Rpc.Server", "src\Lakerfield.Rpc.Server\Lakerfield.Rpc.Server.csproj", "{5F35A95E-390B-4942-9155-830A6D686748}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lakerfield.Rpc.Client", "src\Lakerfield.Rpc.Client\Lakerfield.Rpc.Client.csproj", "{CC0B4D92-EE6E-4255-B247-4B2AF483BDF5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2 - Generators", "2 - Generators", "{7C4C5517-2173-4707-8B90-640B38E8A328}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lakerfield.RpcTest", "src\Lakerfield.RpcTest\Lakerfield.RpcTest.csproj", "{CC5407C9-E959-4FC9-8B1F-59D9DB0CDF02}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lakerfield.Rpc.SourceGenerator", "src\Lakerfield.Rpc.SourceGenerator\Lakerfield.Rpc.SourceGenerator.csproj", "{F671B3B6-5009-4F8D-B516-C60CC17EC95D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lakerfield.RpcTest.ServerApp", "src\Lakerfield.RpcTest.ServerApp\Lakerfield.RpcTest.ServerApp.csproj", "{91FF9B24-3B90-45A6-A60A-B4200D6AE405}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "8 - Playground", "8 - Playground", "{EAADC0D2-AE8B-441B-A83B-152C75794211}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lakerfield.RpcTest.ClientApp", "src\Lakerfield.RpcTest.ClientApp\Lakerfield.RpcTest.ClientApp.csproj", "{EBD4DCB8-DAFB-43CC-916C-378B8AB5DE91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lakerfield.Rpc.PlaygroundApp", "src\Lakerfield.Rpc.PlaygroundApp\Lakerfield.Rpc.PlaygroundApp.csproj", "{09E0CD7E-F36E-4468-AA93-025AB975F144}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lakerfield.Bson", "..\Lakerfield.Bson\src\Lakerfield.Bson\Lakerfield.Bson.csproj", "{36067469-A2F3-4FFC-AF9B-583646130CCC}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "9 - TestApps", "9 - TestApps", "{F7272B31-6435-4A6E-BD4C-707237DE5E3B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lakerfield.RpcTest", "src\Lakerfield.RpcTest\Lakerfield.RpcTest.csproj", "{CC5407C9-E959-4FC9-8B1F-59D9DB0CDF02}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lakerfield.RpcTest.ServerApp", "src\Lakerfield.RpcTest.ServerApp\Lakerfield.RpcTest.ServerApp.csproj", "{91FF9B24-3B90-45A6-A60A-B4200D6AE405}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Lakerfield.RpcTest.ClientApp", "src\Lakerfield.RpcTest.ClientApp\Lakerfield.RpcTest.ClientApp.csproj", "{EBD4DCB8-DAFB-43CC-916C-378B8AB5DE91}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,25 +78,26 @@ Global
 		{EBD4DCB8-DAFB-43CC-916C-378B8AB5DE91}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBD4DCB8-DAFB-43CC-916C-378B8AB5DE91}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EBD4DCB8-DAFB-43CC-916C-378B8AB5DE91}.Release|Any CPU.Build.0 = Release|Any CPU
-		{36067469-A2F3-4FFC-AF9B-583646130CCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{36067469-A2F3-4FFC-AF9B-583646130CCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{36067469-A2F3-4FFC-AF9B-583646130CCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{36067469-A2F3-4FFC-AF9B-583646130CCC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C2957B8-216B-49F7-B206-499A6599521A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C2957B8-216B-49F7-B206-499A6599521A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C2957B8-216B-49F7-B206-499A6599521A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C2957B8-216B-49F7-B206-499A6599521A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {DA96563E-A0DF-4DE0-B505-7CE87EF7A25B}
-	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{C79F2FF1-BD8A-41BF-9CDB-FAFB69984B0B} = {383C4528-2CE6-4CA1-9702-2381EAD0BCA1}
-		{CC0B4D92-EE6E-4255-B247-4B2AF483BDF5} = {383C4528-2CE6-4CA1-9702-2381EAD0BCA1}
-		{5F35A95E-390B-4942-9155-830A6D686748} = {383C4528-2CE6-4CA1-9702-2381EAD0BCA1}
-		{09E0CD7E-F36E-4468-AA93-025AB975F144} = {EAADC0D2-AE8B-441B-A83B-152C75794211}
 		{F671B3B6-5009-4F8D-B516-C60CC17EC95D} = {7C4C5517-2173-4707-8B90-640B38E8A328}
+		{5F35A95E-390B-4942-9155-830A6D686748} = {383C4528-2CE6-4CA1-9702-2381EAD0BCA1}
+		{CC0B4D92-EE6E-4255-B247-4B2AF483BDF5} = {383C4528-2CE6-4CA1-9702-2381EAD0BCA1}
+		{09E0CD7E-F36E-4468-AA93-025AB975F144} = {EAADC0D2-AE8B-441B-A83B-152C75794211}
 		{CC5407C9-E959-4FC9-8B1F-59D9DB0CDF02} = {F7272B31-6435-4A6E-BD4C-707237DE5E3B}
 		{91FF9B24-3B90-45A6-A60A-B4200D6AE405} = {F7272B31-6435-4A6E-BD4C-707237DE5E3B}
 		{EBD4DCB8-DAFB-43CC-916C-378B8AB5DE91} = {F7272B31-6435-4A6E-BD4C-707237DE5E3B}
+		{3C2957B8-216B-49F7-B206-499A6599521A} = {E337848B-BB92-4043-A24E-6FC66BF644B7}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DA96563E-A0DF-4DE0-B505-7CE87EF7A25B}
 	EndGlobalSection
 EndGlobal

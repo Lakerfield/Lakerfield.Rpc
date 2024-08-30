@@ -1,0 +1,7 @@
+<Project>
+	<PropertyGroup>
+		<!-- Set to true and adjust the path to your local repo if you want to use that instead of the nuget packages -->
+		<UseLocalLakerfieldBson>false</UseLocalLakerfieldBson>
+		<LocalLakerfieldBsonRepo>../../../Lakerfield.Bson</LocalLakerfieldBsonRepo>
+	</PropertyGroup>
+</Project>

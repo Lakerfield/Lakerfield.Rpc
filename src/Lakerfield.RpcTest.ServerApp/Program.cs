@@ -1,17 +1,18 @@
-﻿using System;
+using System;
 using System.Net;
+using System.Threading;
 using Lakerfield.RpcTest;
 
 Console.WriteLine("Hello, World!");
 
-var listener = new RpcTestServiceServer(
-  IPAddress.Loopback,
-  3000);
+var cancellation = new CancellationTokenSource();
 
-listener.Start();
+var listener = new RpcTestServiceServer(new IPEndPoint(IPAddress.Loopback, 3000));
+
+_ = listener.StartAsync(cancellation.Token);
 
 Console.ReadKey();
 
-listener.Stop();
+cancellation.Cancel();
 
 
