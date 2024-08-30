@@ -7,6 +7,12 @@
     <Company>Lakerfield B.V.</Company>
     <Product>Lakerfield.Rpc</Product>
     <Copyright>Lakerfield B.V.</Copyright>
+    <AssemblyTitle>Lakerfield.Rpc.SourceGenerator</AssemblyTitle>
+    <Product>Lakerfield.Rpc.SourceGenerator</Product>
+    <PackageId>Lakerfield.Rpc.SourceGenerator</PackageId>
+    <Description>The sourcegenerator for the a .Net RPC libary using BSON</Description>
+    <PackageDescription>A sourcegenerator for a .Net RPC libary using the MongoDB.Bson library</PackageDescription>
+    <PackageTags>$(PackageTags);sourcegenerator</PackageTags>
     <OutputItemType>Analyzer</OutputItemType>
     <PackAsTool>false</PackAsTool>
     <IsPackable>true</IsPackable>
