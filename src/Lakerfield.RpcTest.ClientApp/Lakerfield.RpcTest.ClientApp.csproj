@@ -1,9 +1,13 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>Lakerfield.RpcTest</RootNamespace>
+    <Authors>Michael Lakerveld</Authors>
+    <Company>Lakerfield B.V.</Company>
+    <Product>Lakerfield.Rpc</Product>
+    <Copyright>Lakerfield B.V.</Copyright>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
