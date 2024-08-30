@@ -2,19 +2,16 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <OutputType>Exe</OutputType>
-    <RootNamespace>Lakerfield.Rpc</RootNamespace>
+    <RootNamespace>Lakerfield.RpcTest</RootNamespace>
     <Authors>Michael Lakerveld</Authors>
     <Company>Lakerfield B.V.</Company>
     <Product>Lakerfield.Rpc</Product>
     <Copyright>Lakerfield B.V.</Copyright>
     <Nullable>enable</Nullable>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Lakerfield.Rpc.SourceGenerator\Lakerfield.Rpc.SourceGenerator.csproj" PrivateAssets="all" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\Lakerfield.RpcTest\Lakerfield.RpcTest.csproj" />
+    <ProjectReference Include="..\Lakerfield.Rpc.SourceGenerator\Lakerfield.Rpc.SourceGenerator.csproj" PrivateAssets="all" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
     <ProjectReference Include="..\Lakerfield.Rpc\Lakerfield.Rpc.csproj" />
   </ItemGroup>
 

@@ -1,10 +1,28 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-	  <RootNamespace>Lakerfield.Rpc</RootNamespace>
+    <RootNamespace>Lakerfield.Rpc</RootNamespace>
+    <Authors>Michael Lakerveld</Authors>
+    <Company>Lakerfield B.V.</Company>
+    <Product>Lakerfield.Rpc</Product>
+    <Copyright>Lakerfield B.V.</Copyright>
+    <AssemblyTitle>Lakerfield.Rpc</AssemblyTitle>
+    <Product>Lakerfield.Rpc</Product>
+    <PackageId>Lakerfield.Rpc</PackageId>
+    <Description>A .Net RPC libary using the BSON</Description>
+    <PackageDescription>A .Net RPC libary using the MongoDB.Bson library</PackageDescription>
+    <PackageTags>$(PackageTags)</PackageTags>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
+
+  <ItemGroup Condition="'$(UseLocalLakerfieldBson)' == 'true'">
+    <ProjectReference Include="$(LocalLakerfieldBsonRepo)/src/Lakerfield.Bson/Lakerfield.Bson.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(UseLocalLakerfieldBson)' == 'false'">
+    <PackageReference Include="Lakerfield.Bson" />
+  </ItemGroup>
 
 </Project>
