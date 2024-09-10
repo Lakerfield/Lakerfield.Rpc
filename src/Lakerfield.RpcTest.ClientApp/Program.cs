@@ -18,7 +18,7 @@ Console.WriteLine(company.Name);
 
 var subscription = client
   .GetObservable(Guid.NewGuid())
-  .Subscribe(c => Console.WriteLine(c.Name));
+  .Subscribe(c => Console.WriteLine(c?.Name));
 
 Console.ReadKey();
 

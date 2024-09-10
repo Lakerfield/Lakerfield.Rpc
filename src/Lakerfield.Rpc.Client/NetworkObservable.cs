@@ -3,6 +3,7 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Lakerfield.Rpc.Helpers;
 
 namespace Lakerfield.Rpc
@@ -19,10 +20,7 @@ namespace Lakerfield.Rpc
       ObservableId = Interlocked.Increment(ref _lastObservableId);
     }
 
-    public abstract void OnNext(object obj);
-    public abstract void OnError(Exception exception);
-    public abstract void OnComplete();
-
+    public abstract ValueTask Queue(DrieNulReceiveMessage<RpcMessage> message);
   }
 
   internal class NetworkObservable<T> : NetworkObservable
@@ -31,41 +29,54 @@ namespace Lakerfield.Rpc
     private readonly IObservable<T> _observable;
     private IObserver<T> _observer;
     private bool _disposed;
+    private readonly AsyncQueue<DrieNulReceiveMessage<RpcMessage>> _queue;
+
     public IObservable<T> Observable { get { return _observable; } }
 
     public NetworkObservable(NetworkClient server, RpcMessage message)
     {
+      _queue = new AsyncQueue<DrieNulReceiveMessage<RpcMessage>>();
       _server = server;
       _observable = System.Reactive.Linq.Observable.Create<T>(
         async (IObserver<T> observer) =>
         {
-          // Created synchronize observer, ivm parallel onnext calls
-          // http://stackoverflow.com/questions/12270642/reactive-extension-onnext
-          _observer = Observer.Synchronize(observer);
+          _observer = observer;
           await server.ExecuteObservable(this, message);
+          _ = Task.Run(ProcessQueue);
           return Disposable.Create(DoDispose);
         }).Publish().RefCount();
     }
 
-    public override void OnNext(object obj)
+    public override ValueTask Queue(DrieNulReceiveMessage<RpcMessage> message)
     {
-      if (_disposed)
-        return;
-      _observer.OnNext((T)obj);
+      return _queue.EnqueueAsync(message);
     }
 
-    public override void OnError(Exception exception)
+    private async Task ProcessQueue()
     {
-      if (_disposed)
-        return;
-      _observer.OnError(exception);
-    }
+      while (!_disposed)
+      {
+        var message = await _queue.DequeueAsync();
+        if (_disposed)
+          return;
 
-    public override void OnComplete()
-    {
-      if (_disposed)
-        return;
-      _observer.OnCompleted();
+        switch (message.Opcode)
+        {
+          case MessageOpcode.ObservableOnNext:
+            var payload = message.Message as RpcObservableMessage;
+            _observer.OnNext((T)(payload == null ? null : payload.Value));
+            break;
+
+          case MessageOpcode.ObservableOnException:
+            var exPayload = message.Message as RpcExceptionMessage;
+            _observer.OnError(exPayload == null ? null : new LakerfieldRpcConnectionException(exPayload.Message));
+            return;
+
+          case MessageOpcode.ObservableOnComplete:
+            _observer.OnCompleted();
+            return;
+        }
+      }
     }
 
     private void DoDispose()
@@ -74,6 +85,11 @@ namespace Lakerfield.Rpc
 
       var networkObservable = this;
       AsyncRunSyncHelper.RunSync(() => _server.ExecuteObservableDispose(networkObservable));
+      _queue.EnqueueAsync(new DrieNulReceiveMessage<RpcMessage>()
+      {
+        ObservableId = ObservableId,
+        Opcode = MessageOpcode.ObservableOnComplete,
+      });
     }
   }
 }

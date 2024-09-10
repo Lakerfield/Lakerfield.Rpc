@@ -164,7 +164,7 @@ namespace Lakerfield.Rpc
     }
 
 
-    internal void HandleMessage(DrieNulReceiveMessage<RpcMessage> message)
+    internal async Task HandleMessage(DrieNulReceiveMessage<RpcMessage> message)
     {
       NetworkObservable networkObservable;
       switch (message.Opcode)
@@ -177,35 +177,24 @@ namespace Lakerfield.Rpc
         case MessageOpcode.ObservableRequest:
         case MessageOpcode.ObservableDispose:
           TaskCompletionSource<DrieNulReceiveMessage<RpcMessage>> tcs;
-          if (_pendingTasks.TryGetValue(message.ResponseTo, out tcs))
-          {
-            tcs.TrySetResult(message);
-            return;
-          }
+          lock (_pendingTasks)
+            if (_pendingTasks.TryGetValue(message.ResponseTo, out tcs))
+            {
+              tcs.TrySetResult(message);
+              return;
+            }
           break;
 
         case MessageOpcode.ObservableOnNext:
-          networkObservable = GetNetworkObservable(message.ObservableId);
-          var payload = message.Message as RpcObservableMessage;
-          if (networkObservable != null)
-            networkObservable.OnNext(payload == null ? null : payload.Value);
-          return;
-
+        case MessageOpcode.ObservableOnException:
         case MessageOpcode.ObservableOnComplete:
           networkObservable = GetNetworkObservable(message.ObservableId);
-          var exPayload = message.Message as RpcExceptionMessage;
           if (networkObservable != null)
-            networkObservable.OnError(exPayload == null ? null : new LakerfieldRpcConnectionException(exPayload.Message));
-          return;
-
-        case MessageOpcode.ObservableOnException:
-          networkObservable = GetNetworkObservable(message.ObservableId);
-          if (networkObservable != null)
-            networkObservable.OnComplete();
+            await networkObservable.Queue(message);
           return;
       }
 
-      Console.WriteLine("Unknown message: {0}", message.Opcode);
+      Console.WriteLine("Unknown/unhandled message: {0}", message.Opcode);
     }
 
     private NetworkObservable? GetNetworkObservable(int observableId)
@@ -278,7 +267,7 @@ namespace Lakerfield.Rpc
 
             message.ReadFrom(memoryStream, messageLength);
           }
-          _ = Task.Run(() => HandleMessage(message));
+          await HandleMessage(message);
           _messagesRecieved++;
         }
       }
