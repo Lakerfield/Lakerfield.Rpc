@@ -71,6 +71,7 @@ public partial class RpcServiceGenerator
                             throw new NotImplementedException("{{methodName}} of {{serviceSymbol.Name}} is not implemented");
                           }
 
+
                     """);
       else if (!hasMethod && isObservable)
         methodSourceBuilder
@@ -81,9 +82,10 @@ public partial class RpcServiceGenerator
                             throw new NotImplementedException("{{methodName}} of {{serviceSymbol.Name}} is not implemented");
                           }
 
+
                     """);
       else
-        methodSourceBuilder.AppendLine($"// {methodName} already implemented");
+        methodSourceBuilder.AppendLine($"      // {methodName} already implemented");
 
       if (isTask)
         methodSourceBuilder
@@ -97,6 +99,7 @@ public partial class RpcServiceGenerator
                             };
                           }
 
+
                     """);
 
       if (isObservable)
@@ -107,6 +110,7 @@ public partial class RpcServiceGenerator
                           {
                             return new Lakerfield.Rpc.NetworkObservable<{{returnTypeGenericType1}}>({{methodName}}({{switchParameters}}));
                           }
+
 
                     """);
 
@@ -153,11 +157,18 @@ namespace {{namespaceName}}
         if (message == null)
           throw new ArgumentNullException("message", "Cannot route null RpcMessage");
 
-System.Console.WriteLine($"new message {message.GetType().Name}");
+#if DEBUG
+        System.Console.WriteLine($"new message {message.GetType().Name}");
+#endif
         return message switch {
 {{taskSwitchSourceBuilder.ToString()}}
           _ => TaskNotImplementedMessage(message)
         };
+      }
+
+      private Task<Lakerfield.Rpc.RpcMessage> TaskNotImplementedMessage(Lakerfield.Rpc.RpcMessage message)
+      {
+        throw new NotImplementedException(string.Format("Message {0} not implemented", message.GetType().Name));
       }
 
       public Lakerfield.Rpc.NetworkObservable HandleObservable(Lakerfield.Rpc.RpcMessage message)
@@ -165,16 +176,13 @@ System.Console.WriteLine($"new message {message.GetType().Name}");
         if (message == null)
           throw new ArgumentNullException("message", "Cannot route null RpcMessage");
 
-System.Console.WriteLine($"new message {message.GetType().Name}");
+#if DEBUG
+        System.Console.WriteLine($"new message {message.GetType().Name}");
+#endif
         return message switch {
 {{observableSwitchSourceBuilder.ToString()}}
           _ => ObservableNotImplementedMessage(message)
         };
-      }
-
-      private Task<Lakerfield.Rpc.RpcMessage> TaskNotImplementedMessage(Lakerfield.Rpc.RpcMessage message)
-      {
-        throw new NotImplementedException(string.Format("Message {0} not implemented", message.GetType().Name));
       }
 
       private Lakerfield.Rpc.NetworkObservable ObservableNotImplementedMessage(Lakerfield.Rpc.RpcMessage message)
