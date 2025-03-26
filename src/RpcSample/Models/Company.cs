@@ -1,4 +1,4 @@
-﻿namespace Lakerfield.RpcTest.Models;
+namespace RpcSample.Models;
 
 public class Company
 {

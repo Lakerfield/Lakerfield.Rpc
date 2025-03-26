@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
-using Lakerfield.RpcTest.Models;
+using RpcSample.Models;
 
-namespace Lakerfield.RpcTest;
+namespace RpcSample;
 
 public partial interface IRpcTestService
 {

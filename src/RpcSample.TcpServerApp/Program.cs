@@ -1,7 +1,7 @@
 using System;
 using System.Net;
 using System.Threading;
-using Lakerfield.RpcTest;
+using RpcSample;
 
 Console.WriteLine("Hello, World!");
 

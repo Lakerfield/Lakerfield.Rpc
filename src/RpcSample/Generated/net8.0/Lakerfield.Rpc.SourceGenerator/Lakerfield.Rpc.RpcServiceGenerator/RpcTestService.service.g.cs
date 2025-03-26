@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace Lakerfield.RpcTest
+namespace RpcSample
 {
   // server False client False
 
@@ -18,7 +18,7 @@ namespace Lakerfield.RpcTest
   //[EditorBrowsable(EditorBrowsableState.Never)]
   public class CompanyFindByIdResponse: Lakerfield.Rpc.RpcMessage
   {
-    public Lakerfield.RpcTest.Models.Company Result { get; set; }
+    public RpcSample.Models.Company Result { get; set; }
   }
 
 
@@ -32,7 +32,7 @@ namespace Lakerfield.RpcTest
   //[EditorBrowsable(EditorBrowsableState.Never)]
   public class CompanyFindAllResponse: Lakerfield.Rpc.RpcMessage
   {
-    public Lakerfield.RpcTest.Models.Company[] Result { get; set; }
+    public RpcSample.Models.Company[] Result { get; set; }
   }
 
 
@@ -40,14 +40,14 @@ namespace Lakerfield.RpcTest
   //[EditorBrowsable(EditorBrowsableState.Never)]
   public class CompanySaveRequest : Lakerfield.Rpc.RpcMessage
   {
-    public Lakerfield.RpcTest.Models.Company Entity { get; set; }
+    public RpcSample.Models.Company Entity { get; set; }
 
   }
 
   //[EditorBrowsable(EditorBrowsableState.Never)]
   public class CompanySaveResponse: Lakerfield.Rpc.RpcMessage
   {
-    public Lakerfield.RpcTest.Models.Company Result { get; set; }
+    public RpcSample.Models.Company Result { get; set; }
   }
 
 
@@ -55,7 +55,7 @@ namespace Lakerfield.RpcTest
   //[EditorBrowsable(EditorBrowsableState.Never)]
   public class CompanyDeleteRequest : Lakerfield.Rpc.RpcMessage
   {
-    public Lakerfield.RpcTest.Models.Company Entity { get; set; }
+    public RpcSample.Models.Company Entity { get; set; }
 
   }
 
@@ -70,8 +70,8 @@ namespace Lakerfield.RpcTest
   //[EditorBrowsable(EditorBrowsableState.Never)]
   public class CompanyTestRequest : Lakerfield.Rpc.RpcMessage
   {
-    public Lakerfield.RpcTest.Models.Company Entity { get; set; }
-    public Lakerfield.RpcTest.Models.Company Entity2 { get; set; }
+    public RpcSample.Models.Company Entity { get; set; }
+    public RpcSample.Models.Company Entity2 { get; set; }
     public string Wouter { get; set; }
     public int Bert { get; set; }
 
@@ -80,7 +80,7 @@ namespace Lakerfield.RpcTest
   //[EditorBrowsable(EditorBrowsableState.Never)]
   public class CompanyTestResponse: Lakerfield.Rpc.RpcMessage
   {
-    public (Lakerfield.RpcTest.Models.Company, string) Result { get; set; }
+    public (RpcSample.Models.Company, string) Result { get; set; }
   }
 
 

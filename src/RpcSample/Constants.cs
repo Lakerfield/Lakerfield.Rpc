@@ -1,4 +1,4 @@
-﻿namespace Lakerfield.RpcTest;
+namespace RpcSample;
 
 public class Constants
 {

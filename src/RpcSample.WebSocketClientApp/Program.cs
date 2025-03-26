@@ -1,7 +1,10 @@
+using System;
 using System.Net.WebSockets;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Lakerfield.RpcTest.WebClientApp
+namespace RpcSample.WebClientApp
 {
   internal class Program
   {

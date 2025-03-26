@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
 using Lakerfield.Rpc;
-using Lakerfield.RpcTest.Models;
+using RpcSample.Models;
 
-namespace Lakerfield.RpcTest;
+namespace RpcSample;
 
 [RpcClient]
 public partial class RpcTestServiceClient : IRpcTestService

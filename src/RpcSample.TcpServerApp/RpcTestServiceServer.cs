@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Lakerfield.Rpc;
 
-namespace Lakerfield.RpcTest;
+namespace RpcSample;
 
 [RpcServer]
 public partial class RpcTestServiceServer : Lakerfield.Rpc.LakerfieldRpcServer<IRpcTestService>
@@ -39,7 +39,7 @@ public partial class RpcTestServiceServer : Lakerfield.Rpc.LakerfieldRpcServer<I
         };
       }
 
-      public IObservable<Lakerfield.RpcTest.Models.Company> GetObservable(System.Guid id)
+      public IObservable<RpcSample.Models.Company> GetObservable(System.Guid id)
       {
         return Observable.Interval(TimeSpan.FromSeconds(1)).Select(i => new Models.Company()
         {

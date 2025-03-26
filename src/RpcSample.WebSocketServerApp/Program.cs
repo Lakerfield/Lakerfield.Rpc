@@ -1,6 +1,11 @@
+using Microsoft.AspNetCore.Builder;
+using System;
+using System.IO;
 using System.Net.WebSockets;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Lakerfield.RpcTest.WebServerApp
+namespace RpcSample.WebServerApp
 {
   public class Program
   {

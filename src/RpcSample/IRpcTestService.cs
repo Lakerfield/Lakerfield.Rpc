@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Linq;
 using Lakerfield.Bson.Serialization;
 using Lakerfield.Bson.Serialization.Serializers;
 using Lakerfield.Rpc;
 
-namespace Lakerfield.RpcTest;
+namespace RpcSample;
 
 [RpcService]
 public partial interface IRpcTestService
@@ -19,7 +19,7 @@ public static partial class RpcTestServiceBsonConfigurator
   {
     return type.IsConstructedGenericType ?
       type.GetGenericArguments().All(IsAllowedType) :
-      type.FullName.StartsWith("Lakerfield.RpcTest");
+      type.FullName.StartsWith("RpcSample");
   }
 
   static partial void PreConfigure()

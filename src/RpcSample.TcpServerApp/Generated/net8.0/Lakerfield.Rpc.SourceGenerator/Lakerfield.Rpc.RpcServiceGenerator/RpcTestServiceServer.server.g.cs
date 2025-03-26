@@ -2,11 +2,11 @@
 using System.ComponentModel;
 using System.Net;
 using System.Threading.Tasks;
-using Lakerfield.RpcTest;
+using RpcSample;
 
-namespace Lakerfield.RpcTest
+namespace RpcSample
 {
-  // server True client False from Lakerfield.RpcTest.IRpcTestService
+  // server True client False from RpcSample.IRpcTestService
   public partial class RpcTestServiceServer
   {
     public RpcTestServiceServer(IPEndPoint endPoint) : base (endPoint)
@@ -87,7 +87,7 @@ namespace Lakerfield.RpcTest
       }
 
       #warning CompanyFindAll of IRpcTestService is not implemented
-      public System.Threading.Tasks.Task<Lakerfield.RpcTest.Models.Company[]> CompanyFindAll()
+      public System.Threading.Tasks.Task<RpcSample.Models.Company[]> CompanyFindAll()
       {
         throw new NotImplementedException("CompanyFindAll of IRpcTestService is not implemented");
       }
@@ -102,7 +102,7 @@ namespace Lakerfield.RpcTest
       }
 
       #warning CompanySave of IRpcTestService is not implemented
-      public System.Threading.Tasks.Task<Lakerfield.RpcTest.Models.Company> CompanySave(Lakerfield.RpcTest.Models.Company entity)
+      public System.Threading.Tasks.Task<RpcSample.Models.Company> CompanySave(RpcSample.Models.Company entity)
       {
         throw new NotImplementedException("CompanySave of IRpcTestService is not implemented");
       }
@@ -117,7 +117,7 @@ namespace Lakerfield.RpcTest
       }
 
       #warning CompanyDelete of IRpcTestService is not implemented
-      public System.Threading.Tasks.Task<bool> CompanyDelete(Lakerfield.RpcTest.Models.Company entity)
+      public System.Threading.Tasks.Task<bool> CompanyDelete(RpcSample.Models.Company entity)
       {
         throw new NotImplementedException("CompanyDelete of IRpcTestService is not implemented");
       }
@@ -132,7 +132,7 @@ namespace Lakerfield.RpcTest
       }
 
       #warning CompanyTest of IRpcTestService is not implemented
-      public System.Threading.Tasks.Task<(Lakerfield.RpcTest.Models.Company, string)> CompanyTest(Lakerfield.RpcTest.Models.Company entity, Lakerfield.RpcTest.Models.Company entity2, string wouter, int bert)
+      public System.Threading.Tasks.Task<(RpcSample.Models.Company, string)> CompanyTest(RpcSample.Models.Company entity, RpcSample.Models.Company entity2, string wouter, int bert)
       {
         throw new NotImplementedException("CompanyTest of IRpcTestService is not implemented");
       }
@@ -150,7 +150,7 @@ namespace Lakerfield.RpcTest
       [EditorBrowsable(EditorBrowsableState.Never)]
       public Lakerfield.Rpc.NetworkObservable _GetObservable(GetObservableRequest request)
       {
-        return new Lakerfield.Rpc.NetworkObservable<Lakerfield.RpcTest.Models.Company>(GetObservable(request.Id));
+        return new Lakerfield.Rpc.NetworkObservable<RpcSample.Models.Company>(GetObservable(request.Id));
       }
 
 
