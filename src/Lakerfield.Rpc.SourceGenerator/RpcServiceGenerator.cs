@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -24,13 +24,16 @@ namespace Lakerfield.Rpc
   internal sealed class RpcServiceAttribute : Attribute
   {
   }
+
   internal sealed class RpcServerAttribute : Attribute
   {
   }
+
   internal sealed class RpcClientAttribute : Attribute
   {
   }
 }
+
 """, Encoding.UTF8));
     });
 
@@ -62,9 +65,6 @@ namespace Lakerfield.Rpc
       .Where(m => m is not null)
       .Select((symbol, _) => (INamedTypeSymbol)symbol!)
       .Collect();
-
-    // // Register the source generator to generate the implementation class
-    // context.RegisterSourceOutput(interfacesWithAttribute, (spc, symbols) => Execute(spc, symbols));
 
     // Combine the dependency check with the source generator logic
     var combined = interfacesWithAttribute.Combine(hasServerDependencyCheck).Combine(hasClientDependencyCheck);

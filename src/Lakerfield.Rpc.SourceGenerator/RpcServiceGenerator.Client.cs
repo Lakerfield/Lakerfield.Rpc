@@ -76,7 +76,7 @@ public partial class RpcServiceGenerator
 
       namespace {{namespaceName}}
       {
-      // server {{hasServer}} client {{hasClient}}
+        // server {{hasServer}} client {{hasClient}}
         public partial class {{className}}
         {
           public Lakerfield.Rpc.NetworkClient Client { get; }
@@ -86,7 +86,7 @@ public partial class RpcServiceGenerator
             Client = client;
           }
 
-          {{methodSourceBuilder.ToString()}}
+      {{methodSourceBuilder.ToString()}}
         }
       }
 

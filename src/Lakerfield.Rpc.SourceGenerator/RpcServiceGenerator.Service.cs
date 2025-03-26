@@ -46,17 +46,18 @@ public partial class RpcServiceGenerator
       foreach (var memberParameter in member.Parameters)
       {
         methodPropertiesSourceBuilder.AppendLine(
-          $"        public {memberParameter.Type} {CapitalizeFirstLetter(memberParameter.Name)} {{ get; set; }}");
+          $"    public {memberParameter.Type} {CapitalizeFirstLetter(memberParameter.Name)} {{ get; set; }}");
       }
 
       if (isTask || isObservable)
       {  requestResponseModelsSourceBuilder
           .Append($$"""
-                          //[EditorBrowsable(EditorBrowsableState.Never)]
-                          public class {{methodName}}Request : Lakerfield.Rpc.RpcMessage
-                          {
+                      //[EditorBrowsable(EditorBrowsableState.Never)]
+                      public class {{methodName}}Request : Lakerfield.Rpc.RpcMessage
+                      {
                     {{methodPropertiesSourceBuilder.ToString()}}
-                          }
+                      }
+
 
                     """);
         bsonClassMapsSourceBuilder
@@ -70,11 +71,13 @@ public partial class RpcServiceGenerator
       {
         requestResponseModelsSourceBuilder
           .Append($$"""
-                          //[EditorBrowsable(EditorBrowsableState.Never)]
-                          public class {{methodName}}Response: Lakerfield.Rpc.RpcMessage
-                          {
-                            public {{returnTypeExTask}} Result { get; set; }
-                          }
+                      //[EditorBrowsable(EditorBrowsableState.Never)]
+                      public class {{methodName}}Response: Lakerfield.Rpc.RpcMessage
+                      {
+                        public {{returnTypeExTask}} Result { get; set; }
+                      }
+
+
 
 
                     """);
@@ -113,6 +116,7 @@ namespace {{namespaceName}}
       _configured = true;
 
       PreConfigure();
+
 {{bsonClassMapsSourceBuilder.ToString()}}
       PostConfigure();
     }
