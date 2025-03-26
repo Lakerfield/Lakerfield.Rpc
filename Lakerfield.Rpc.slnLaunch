@@ -1,0 +1,28 @@
+[
+  {
+    "Name": "Websockets Profile",
+    "Projects": [
+      {
+        "Path": "src\\Lakerfield.RpcTest.WebClientApp\\Lakerfield.RpcTest.WebClientApp.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "src\\Lakerfield.RpcTest.WebServerApp\\Lakerfield.RpcTest.WebServerApp.csproj",
+        "Action": "Start"
+      }
+    ]
+  },
+  {
+    "Name": "TCP Profile",
+    "Projects": [
+      {
+        "Path": "src\\Lakerfield.RpcTest.ServerApp\\Lakerfield.RpcTest.ServerApp.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "src\\Lakerfield.RpcTest.ClientApp\\Lakerfield.RpcTest.ClientApp.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
