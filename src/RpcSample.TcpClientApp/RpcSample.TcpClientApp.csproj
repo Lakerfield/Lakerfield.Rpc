@@ -12,13 +12,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Lakerfield.Rpc.Server\Lakerfield.Rpc.Server.csproj" />
-    <ProjectReference Include="..\Lakerfield.RpcTest\Lakerfield.RpcTest.csproj" />
-    <ProjectReference Include="..\Lakerfield.Rpc.SourceGenerator\Lakerfield.Rpc.SourceGenerator.csproj" PrivateAssets="all" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Reactive" />
+    <ProjectReference Include="..\Lakerfield.Rpc.Client\Lakerfield.Rpc.Client.csproj" />
+    <ProjectReference Include="..\RpcSample\RpcSample.csproj" />
+    <ProjectReference Include="..\Lakerfield.Rpc.SourceGenerator\Lakerfield.Rpc.SourceGenerator.csproj" PrivateAssets="all" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -34,5 +30,5 @@
     <!-- Exclude everything in the generated folder for compilation -->
     <Compile Remove="$(GeneratedFolder)/**/*.cs" />
   </ItemGroup>
-
+  
 </Project>
