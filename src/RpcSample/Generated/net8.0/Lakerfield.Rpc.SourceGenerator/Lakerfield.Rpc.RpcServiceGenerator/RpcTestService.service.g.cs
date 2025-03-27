@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 
 namespace RpcSample
 {
-  // server False client False
-
   //[EditorBrowsable(EditorBrowsableState.Never)]
   public class CompanyFindByIdRequest : Lakerfield.Rpc.RpcMessage
   {

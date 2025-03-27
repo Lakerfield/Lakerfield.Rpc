@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>Lakerfield.Rpc</RootNamespace>
+    <Authors>Michael Lakerveld</Authors>
+    <Company>Lakerfield B.V.</Company>
+    <Product>Lakerfield.Rpc</Product>
+    <Copyright>Lakerfield B.V.</Copyright>
+    <AssemblyTitle>Lakerfield.Rpc.WebSocketClient</AssemblyTitle>
+    <Product>Lakerfield.Rpc.WebSocketClient</Product>
+    <PackageId>Lakerfield.Rpc.WebSocketClient</PackageId>
+    <Description>The client library for a .Net RPC libary using BSON</Description>
+    <PackageDescription>A client library for a .Net RPC libary using the MongoDB.Bson library</PackageDescription>
+    <PackageTags>$(PackageTags);client;websocket</PackageTags>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Lakerfield.Rpc\Lakerfield.Rpc.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Reactive" />
+  </ItemGroup>
+
+</Project>

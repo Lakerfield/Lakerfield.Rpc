@@ -6,8 +6,7 @@ using RpcSample;
 
 namespace RpcSample
 {
-  // server True client False from RpcSample.IRpcTestService
-  public partial class RpcTestServiceServer
+  public partial class RpcTestServiceServer // RpcSample.IRpcTestService
   {
     public RpcTestServiceServer(IPEndPoint endPoint) : base (endPoint)
     {

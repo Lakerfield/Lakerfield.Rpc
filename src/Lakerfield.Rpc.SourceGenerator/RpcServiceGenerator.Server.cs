@@ -9,7 +9,7 @@ public partial class RpcServiceGenerator
 {
 
 
-  private void GenerateServerClass(SourceProductionContext context, INamedTypeSymbol classSymbol, bool hasServer, bool hasClient)
+  private void GenerateServerClass(SourceProductionContext context, INamedTypeSymbol classSymbol, bool hasServer, bool hasWebSocketServer)
   {
     var className = classSymbol.Name;
     var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
@@ -17,15 +17,19 @@ public partial class RpcServiceGenerator
     var nestedClassSymbol = classSymbol.GetTypeMembers().FirstOrDefault(t => t.Name == $"ClientConnectionMessageHandler");
 
     var sourceBuilder = new StringBuilder();
+    // check for error
+    if (hasServer && hasWebSocketServer) sourceBuilder.AppendLine($"#error {{className}} should not reference both Lakerfield.Rpc.Server and Lakerfield.Rpc.WebSocketServer");
+    if (hasServer && classSymbol.BaseType?.Name != "LakerfieldRpcServer") sourceBuilder.AppendLine($"#error {{className}} should inherit from Lakerfield.Rpc.LakerfieldRpcServer<IMyService>");
+    if (hasWebSocketServer && classSymbol.BaseType?.Name != "LakerfieldRpcWebSocketServer") sourceBuilder.AppendLine($"#error {{className}} should inherit from Lakerfield.Rpc.LakerfieldRpcWebSocketServer<IMyService>");
+    if (sourceBuilder.Length > 0)
+    {
+      context.AddSource($"{className}.server.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
+      return;
+    }
+
     var taskSwitchSourceBuilder = new StringBuilder();
     var observableSwitchSourceBuilder = new StringBuilder();
     var methodSourceBuilder = new StringBuilder();
-
-    if (classSymbol.BaseType?.Name != "LakerfieldRpcServer")
-      sourceBuilder.Append($$"""
-                             #error {{className}} should inherit from Lakerfield.Rpc.LakerfieldRpcServer<IMyService>
-
-                             """);
 
     var serviceSymbol = classSymbol.BaseType?.TypeArguments.FirstOrDefault() as INamedTypeSymbol;
     var serviceNamespaceName = serviceSymbol.ContainingNamespace.ToDisplayString();
@@ -117,7 +121,8 @@ public partial class RpcServiceGenerator
       //, CancellationToken cancellationToken = default
     }
 
-    sourceBuilder.Append($$"""
+    if (hasServer)
+      sourceBuilder.Append($$"""
 using System;
 using System.ComponentModel;
 using System.Net;
@@ -126,10 +131,90 @@ using {{serviceNamespaceName}};
 
 namespace {{namespaceName}}
 {
-  // server {{hasServer}} client {{hasClient}} from {{serviceSymbol.ToDisplayString()}}
-  public partial class {{className}}
+  public partial class {{className}} // {{serviceSymbol.ToDisplayString()}}
   {
     public {{className}}(IPEndPoint endPoint) : base (endPoint)
+    {
+    }
+
+    public override void InitBsonClassMaps()
+    {
+      {{bsonClassName}}BsonConfigurator.Configure();
+    }
+
+    //public override Lakerfield.Rpc.ILakerfieldRpcClientMessageHandler CreateConnectionMessageRouter(Lakerfield.Rpc.LakerfieldRpcServerConnection connection)
+    //{
+    //  return new Lakerfield.Rpc.LakerfieldRpcMessageRouter(connection);
+    //}
+
+    public partial class ClientConnectionMessageHandler : Lakerfield.Rpc.ILakerfieldRpcClientMessageHandler
+    {
+      public Lakerfield.Rpc.LakerfieldRpcServerConnection Connection { get; }
+
+      public ClientConnectionMessageHandler(Lakerfield.Rpc.LakerfieldRpcServerConnection connection)
+      {
+        Connection = connection;
+      }
+
+      public Task<Lakerfield.Rpc.RpcMessage> HandleMessage(Lakerfield.Rpc.RpcMessage message)
+      {
+        if (message == null)
+          throw new ArgumentNullException("message", "Cannot route null RpcMessage");
+
+#if DEBUG
+        System.Console.WriteLine($"new message {message.GetType().Name}");
+#endif
+        return message switch {
+{{taskSwitchSourceBuilder.ToString()}}
+          _ => TaskNotImplementedMessage(message)
+        };
+      }
+
+      private Task<Lakerfield.Rpc.RpcMessage> TaskNotImplementedMessage(Lakerfield.Rpc.RpcMessage message)
+      {
+        throw new NotImplementedException(string.Format("Message {0} not implemented", message.GetType().Name));
+      }
+
+      public Lakerfield.Rpc.NetworkObservable HandleObservable(Lakerfield.Rpc.RpcMessage message)
+      {
+        if (message == null)
+          throw new ArgumentNullException("message", "Cannot route null RpcMessage");
+
+#if DEBUG
+        System.Console.WriteLine($"new message {message.GetType().Name}");
+#endif
+        return message switch {
+{{observableSwitchSourceBuilder.ToString()}}
+          _ => ObservableNotImplementedMessage(message)
+        };
+      }
+
+      private Lakerfield.Rpc.NetworkObservable ObservableNotImplementedMessage(Lakerfield.Rpc.RpcMessage message)
+      {
+        throw new NotImplementedException(string.Format("Message {0} not implemented", message.GetType().Name));
+      }
+
+{{methodSourceBuilder.ToString()}}
+
+    }
+  }
+}
+
+""");
+
+    if (hasWebSocketServer)
+      sourceBuilder.Append($$"""
+using System;
+using System.ComponentModel;
+using System.Net;
+using System.Threading.Tasks;
+using {{serviceNamespaceName}};
+
+namespace {{namespaceName}}
+{
+  public partial class {{className}} // {{serviceSymbol.ToDisplayString()}}
+  {
+    public {{className}}(string url) : base (url)
     {
     }
 
