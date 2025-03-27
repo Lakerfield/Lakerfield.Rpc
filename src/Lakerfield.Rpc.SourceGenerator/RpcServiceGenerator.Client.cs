@@ -79,8 +79,8 @@ public partial class RpcServiceGenerator
         // server {{hasServer}} client {{hasClient}}
         public partial class {{className}}
         {
-          public Lakerfield.Rpc.NetworkClient Client { get; }
-          public {{className}}(Lakerfield.Rpc.NetworkClient client)
+          public Lakerfield.Rpc.INetworkClient Client { get; }
+          public {{className}}(Lakerfield.Rpc.INetworkClient client)
           {
             {{bsonClassName}}BsonConfigurator.Configure();
             Client = client;

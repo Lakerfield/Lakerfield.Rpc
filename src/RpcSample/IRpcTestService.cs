@@ -24,8 +24,6 @@ public static partial class RpcTestServiceBsonConfigurator
 
   static partial void PreConfigure()
   {
-    System.Console.WriteLine("Pre bson");
-
     //var objectSerializer = new ObjectSerializer(ObjectSerializer.AllAllowedTypes);
     var objectSerializer = new ObjectSerializer(type => ObjectSerializer.DefaultAllowedTypes(type) || IsAllowedType(type));
     BsonSerializer.RegisterSerializer(objectSerializer);
@@ -39,8 +37,8 @@ public static partial class RpcTestServiceBsonConfigurator
       cm.AutoMap();
       //cm.SetDiscriminator("Company");
     });
-
   }
+
   static partial void PostConfigure()
   {
 

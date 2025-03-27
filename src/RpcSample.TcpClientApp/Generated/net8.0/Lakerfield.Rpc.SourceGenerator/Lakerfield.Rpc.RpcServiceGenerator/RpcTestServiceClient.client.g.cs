@@ -6,8 +6,8 @@ namespace RpcSample
   // server False client True
   public partial class RpcTestServiceClient
   {
-    public Lakerfield.Rpc.NetworkClient Client { get; }
-    public RpcTestServiceClient(Lakerfield.Rpc.NetworkClient client)
+    public Lakerfield.Rpc.INetworkClient Client { get; }
+    public RpcTestServiceClient(Lakerfield.Rpc.INetworkClient client)
     {
       RpcTestServiceBsonConfigurator.Configure();
       Client = client;
