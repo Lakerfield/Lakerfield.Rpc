@@ -29,4 +29,9 @@
     <Compile Remove="$(GeneratedFolder)/**/*.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Show excluded in solution explorer -->
+    <None Include="$(GeneratedFolder)/**/*.cs" />
+  </ItemGroup>
+
 </Project>

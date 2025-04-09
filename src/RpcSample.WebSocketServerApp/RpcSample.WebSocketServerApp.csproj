@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Lakerfield.Rpc.WebSocketServer\Lakerfield.Rpc.WebSocketServer.csproj" />
     <ProjectReference Include="..\Lakerfield.Rpc.SourceGenerator\Lakerfield.Rpc.SourceGenerator.csproj" PrivateAssets="all" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\RpcSample\RpcSample.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -27,6 +28,11 @@
   <ItemGroup>
     <!-- Exclude everything in the generated folder for compilation -->
     <Compile Remove="$(GeneratedFolder)/**/*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Show excluded in solution explorer -->
+    <None Include="$(GeneratedFolder)/**/*.cs" />
   </ItemGroup>
 
 </Project>
