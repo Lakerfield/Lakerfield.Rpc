@@ -9,7 +9,7 @@ public partial class RpcServiceGenerator
 {
 
 
-  private void GenerateServiceClasses(SourceProductionContext context, INamedTypeSymbol interfaceSymbol, bool hasServer, bool hasClient)
+  private void GenerateServiceClasses(SourceProductionContext context, INamedTypeSymbol interfaceSymbol)
   {
     var interfaceName = interfaceSymbol.Name;
     var namespaceName = interfaceSymbol.ContainingNamespace.ToDisplayString();
@@ -100,8 +100,6 @@ using System.Threading.Tasks;
 
 namespace {{namespaceName}}
 {
-  // server {{hasServer}} client {{hasClient}}
-
 {{requestResponseModelsSourceBuilder.ToString()}}
 
   public static partial class {{className}}BsonConfigurator

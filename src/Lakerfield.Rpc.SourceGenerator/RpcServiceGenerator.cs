@@ -37,25 +37,34 @@ namespace Lakerfield.Rpc
 """, Encoding.UTF8));
     });
 
-    // Check if the project references "Lakerfield.Rpc.Client"
-    var hasClientDependencyCheck = context.CompilationProvider
-      .Select((compilation, _) =>
-      {
-        foreach (var reference in compilation.ReferencedAssemblyNames)
-          if (reference.Name == "Lakerfield.Rpc.Client")
-            return true;
-        return false;
-      });
+    // Check if the project references assemblies
+    var hasCoreDependencyCheck = context.HasAssemblyReference("Lakerfield.Rpc");
+    var hasClientDependencyCheck = context.HasAssemblyReference("Lakerfield.Rpc.Client");
+    var hasServerDependencyCheck = context.HasAssemblyReference("Lakerfield.Rpc.Server");
+    var hasWebSocketClientDependencyCheck = context.HasAssemblyReference("Lakerfield.Rpc.WebSocketClient");
+    var hasWebSocketServerDependencyCheck = context.HasAssemblyReference("Lakerfield.Rpc.WebSocketServer");
 
-    // Check if the project references "Lakerfield.Rpc.Server"
-    var hasServerDependencyCheck = context.CompilationProvider
-      .Select((compilation, _) =>
-      {
-        foreach (var reference in compilation.ReferencedAssemblyNames)
-          if (reference.Name == "Lakerfield.Rpc.Server")
-            return true;
-        return false;
-      });
+    // Combine the dependency check with the source generator logic
+    var combined = hasCoreDependencyCheck
+      .Combine(hasClientDependencyCheck)
+      .Combine(hasServerDependencyCheck)
+      .Combine(hasWebSocketClientDependencyCheck)
+      .Combine(hasWebSocketServerDependencyCheck);
+
+    context.RegisterSourceOutput(combined, (spc, tuple) =>
+    {
+      var ((((core, client), server), webSocketClient), webSocketServer) = tuple;
+      var source = $$"""
+        // has Lakerfield.Rpc {{(core ? "YES" : "no")}}
+        // has Lakerfield.Rpc.Client {{(client ? "YES":"no")}}
+        // has Lakerfield.Rpc.Server {{(server ? "YES":"no")}}
+        // has Lakerfield.Rpc.WebSocketClient {{(webSocketClient ? "YES":"no")}}
+        // has Lakerfield.Rpc.WebSocketServer {{(webSocketServer ? "YES":"no")}}
+
+        """;
+      spc.AddSource($"LakerfieldRpc.SourceGenerator.info.g.cs", SourceText.From(source, Encoding.UTF8));
+    });
+
 
     // Find all interfaces with RpcServiceAttribute
     var interfacesWithAttribute = context.SyntaxProvider
@@ -66,19 +75,14 @@ namespace Lakerfield.Rpc
       .Select((symbol, _) => (INamedTypeSymbol)symbol!)
       .Collect();
 
-    // Combine the dependency check with the source generator logic
-    var combined = interfacesWithAttribute.Combine(hasServerDependencyCheck).Combine(hasClientDependencyCheck);
-
     // Register the source generator to generate the implementation class only if the dependency is present
-    context.RegisterSourceOutput(combined, (spc, tuple) =>
+    context.RegisterSourceOutput(interfacesWithAttribute, (spc, symbols) =>
     {
-      var ((symbols, hasServer), hasClient) = tuple;
       foreach (var symbol in symbols.Distinct(SymbolEqualityComparer.Default))
       {
         if (symbol is not null)
         {
-          //GenerateInterfaceImplementation(spc, (INamedTypeSymbol)symbol, hasServer, hasClient);
-          GenerateServiceClasses(spc, (INamedTypeSymbol)symbol, hasServer, hasClient);
+          GenerateServiceClasses(spc, (INamedTypeSymbol)symbol);
         }
       }
     });
@@ -94,17 +98,17 @@ namespace Lakerfield.Rpc
       .Collect();
 
     // Combine the dependency check with the source generator logic
-    var combinedServerClass = serverClassesWithAttribute.Combine(hasServerDependencyCheck).Combine(hasClientDependencyCheck);
+    var combinedServerClass = serverClassesWithAttribute.Combine(hasServerDependencyCheck).Combine(hasWebSocketServerDependencyCheck);
 
     // Register the source generator to generate the implementation class only if the dependency is present
     context.RegisterSourceOutput(combinedServerClass, (spc, tuple) =>
     {
-      var ((symbols, hasServer), hasClient) = tuple;
+      var ((symbols, hasServer), hasWebSocketServer) = tuple;
       foreach (var symbol in symbols.Distinct(SymbolEqualityComparer.Default))
       {
         if (symbol is not null)
         {
-          GenerateServerClass(spc, (INamedTypeSymbol)symbol, hasServer, hasClient);
+          GenerateServerClass(spc, (INamedTypeSymbol)symbol, hasServer, hasWebSocketServer);
         }
       }
     });
@@ -120,17 +124,17 @@ namespace Lakerfield.Rpc
       .Collect();
 
     // Combine the dependency check with the source generator logic
-    var combinedClientClass = clientClassesWithAttribute.Combine(hasServerDependencyCheck).Combine(hasClientDependencyCheck);
+    var combinedClientClass = clientClassesWithAttribute.Combine(hasClientDependencyCheck).Combine(hasWebSocketClientDependencyCheck);
 
     // Register the source generator to generate the implementation class only if the dependency is present
     context.RegisterSourceOutput(combinedClientClass, (spc, tuple) =>
     {
-      var ((symbols, hasServer), hasClient) = tuple;
+      var ((symbols, hasClient), hasWebSocketClient) = tuple;
       foreach (var symbol in symbols.Distinct(SymbolEqualityComparer.Default))
       {
         if (symbol is not null)
         {
-          GenerateClientClass(spc, (INamedTypeSymbol)symbol, hasServer, hasClient);
+          GenerateClientClass(spc, (INamedTypeSymbol)symbol, hasClient, hasWebSocketClient);
         }
       }
     });
@@ -386,5 +390,25 @@ public abstract class {abstractClassName} : {interfaceName}
 
     var diagnostic = Diagnostic.Create(descriptor, Location.None, message);
     context.ReportDiagnostic(diagnostic);
+  }
+}
+
+public static class GeneratorExtensions
+{
+  public static IncrementalValueProvider<bool> HasAssemblyReference(this IncrementalGeneratorInitializationContext context, string referencedAssemblyName)
+  {
+    return context.CompilationProvider
+      .Select((compilation, _) =>
+      {
+        foreach (var reference in compilation.ReferencedAssemblyNames)
+          if (reference.Name == referencedAssemblyName)
+            return true;
+        return false;
+      });
+  }
+
+  public static string JoinAsString(this string[] strings, string seperator = ",")
+  {
+    return string.Join(seperator, strings);
   }
 }

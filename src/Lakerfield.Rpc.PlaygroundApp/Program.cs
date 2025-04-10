@@ -1,6 +1,6 @@
 using System;
 using System.IO;
-using Lakerfield.RpcTest;
+using RpcSample;
 
 namespace Lakerfield.Rpc;
 

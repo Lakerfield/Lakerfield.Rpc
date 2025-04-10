@@ -1,0 +1,28 @@
+[
+  {
+    "Name": "Websocket Profile",
+    "Projects": [
+      {
+        "Path": "src\\RpcSample.WebSocketClientApp\\RpcSample.WebSocketClientApp.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "src\\RpcSample.WebSocketServerApp\\RpcSample.WebSocketServerApp.csproj",
+        "Action": "Start"
+      }
+    ]
+  },
+  {
+    "Name": "TCP Profile",
+    "Projects": [
+      {
+        "Path": "src\\RpcSample.TcpServerApp\\RpcSample.TcpServerApp.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "src\\RpcSample.TcpClientApp\\RpcSample.TcpClientApp.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]
