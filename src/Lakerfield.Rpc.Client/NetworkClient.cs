@@ -129,7 +129,7 @@ namespace Lakerfield.Rpc
       var isBroadcast = sendMessage.Flags.HasFlag(MessageFlags.Broadcast);
       if (!isBroadcast)
       {
-        taskCompletionSource = new TaskCompletionSource<DrieNulReceiveMessage<RpcMessage>>();
+        taskCompletionSource = new TaskCompletionSource<DrieNulReceiveMessage<RpcMessage>>(TaskCreationOptions.RunContinuationsAsynchronously);
         lock (_pendingTasks)
           _pendingTasks.Add(sendMessage.RequestId, taskCompletionSource);
       }
@@ -139,8 +139,7 @@ namespace Lakerfield.Rpc
         if (isBroadcast)
           return null;
 
-        // TODO: Uitzoeken ofdat dit niet anders kan, dit gebruikt thread om te wachten...
-        await Task.Run(() => taskCompletionSource.Task.Wait(timeout));
+        await taskCompletionSource.Task.AwaitWithTimeout(timeout).ConfigureAwait(false);
       }
       finally
       {
