@@ -214,8 +214,9 @@ namespace {{namespaceName}}
 {
   public partial class {{className}} // {{serviceSymbol.ToDisplayString()}}
   {
-    public {{className}}(string url) : base (url)
+    public {{className}}() : base ()
     {
+      InitBsonClassMaps();
     }
 
     public override void InitBsonClassMaps()
@@ -223,16 +224,16 @@ namespace {{namespaceName}}
       {{bsonClassName}}BsonConfigurator.Configure();
     }
 
-    //public override Lakerfield.Rpc.ILakerfieldRpcClientMessageHandler CreateConnectionMessageRouter(Lakerfield.Rpc.LakerfieldRpcServerConnection connection)
+    //public override Lakerfield.Rpc.ILakerfieldRpcClientMessageHandler CreateConnectionMessageRouter(Lakerfield.Rpc.LakerfieldRpcWebSocketServerConnection connection)
     //{
     //  return new Lakerfield.Rpc.LakerfieldRpcMessageRouter(connection);
     //}
 
     public partial class ClientConnectionMessageHandler : Lakerfield.Rpc.ILakerfieldRpcClientMessageHandler
     {
-      public Lakerfield.Rpc.LakerfieldRpcServerConnection Connection { get; }
+      public Lakerfield.Rpc.LakerfieldRpcWebSocketServerConnection Connection { get; }
 
-      public ClientConnectionMessageHandler(Lakerfield.Rpc.LakerfieldRpcServerConnection connection)
+      public ClientConnectionMessageHandler(Lakerfield.Rpc.LakerfieldRpcWebSocketServerConnection connection)
       {
         Connection = connection;
       }

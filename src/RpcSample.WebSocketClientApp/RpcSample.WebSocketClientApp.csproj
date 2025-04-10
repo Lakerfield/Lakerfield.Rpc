@@ -14,6 +14,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Lakerfield.Rpc.WebSocketClient\Lakerfield.Rpc.WebSocketClient.csproj" />
     <ProjectReference Include="..\Lakerfield.Rpc.SourceGenerator\Lakerfield.Rpc.SourceGenerator.csproj" PrivateAssets="all" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\RpcSample\RpcSample.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

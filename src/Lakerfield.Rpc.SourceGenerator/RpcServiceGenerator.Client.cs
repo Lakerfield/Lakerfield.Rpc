@@ -9,25 +9,28 @@ public partial class RpcServiceGenerator
 {
 
 
-  private void GenerateClientClass(SourceProductionContext context, INamedTypeSymbol classSymbol, bool hasServer, bool hasClient)
+  private void GenerateClientClass(SourceProductionContext context, INamedTypeSymbol classSymbol, bool hasClient, bool hasWebSocketClient)
   {
     var className = classSymbol.Name;
     var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
+
+    var sourceBuilder = new StringBuilder();
+    // check for error
+    if (hasClient && hasWebSocketClient) sourceBuilder.AppendLine($"#error {{className}} should not reference both Lakerfield.Rpc.Client and Lakerfield.Rpc.WebSocketClient");
+    if (!hasClient && !hasWebSocketClient) sourceBuilder.AppendLine($"#error {{className}} should reference Lakerfield.Rpc.Client or Lakerfield.Rpc.WebSocketClient");
+    if (sourceBuilder.Length > 0)
+    {
+      context.AddSource($"{className}.client.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
+      return;
+    }
+
+    var methodSourceBuilder = new StringBuilder();
+
     var serviceSymbol = classSymbol.Interfaces.FirstOrDefault();
     var serviceNamespaceName = serviceSymbol.ContainingNamespace.ToDisplayString();
     var bsonClassName = $"{serviceSymbol.Name.TrimStart('I')}";
 
-    var sourceBuilder = new StringBuilder();
-    var methodSourceBuilder = new StringBuilder();
-
-    if (!hasClient)
-      sourceBuilder.Append($$"""
-                             #error {{className}} needs a reference to the Lakerfield.Rpc.Client package
-
-                             """);
-
     // Implement each method from the interface
-    //foreach (var member in interfaceSymbol.GetMembers().OfType<IMethodSymbol>())
     foreach (var member in GetAllInterfaceMembersIncludingInherited(classSymbol).OfType<IMethodSymbol>())
     {
       var isTask = member.ReturnType.Name == "Task";
@@ -76,7 +79,6 @@ public partial class RpcServiceGenerator
 
       namespace {{namespaceName}}
       {
-        // server {{hasServer}} client {{hasClient}}
         public partial class {{className}}
         {
           public Lakerfield.Rpc.INetworkClient Client { get; }

@@ -12,24 +12,23 @@ namespace RpcSample.WebClientApp
     {
       Console.WriteLine("Hello, World!");
 
+      await Task.Delay(1000);
 
-      using var ws = new ClientWebSocket();
-      Uri serverUri = new Uri("ws://localhost:5005/ws");
-      await ws.ConnectAsync(serverUri, CancellationToken.None);
+      var networkClient = new Lakerfield.Rpc.NetworkClient(new Uri("ws://localhost:5005/ws"));
 
-      // Binary data verzenden (bijv. een byte array)
-      byte[] binaryData = Encoding.UTF8.GetBytes("Hello WebSocket!");
-      await ws.SendAsync(new ArraySegment<byte>(binaryData), WebSocketMessageType.Binary, true, CancellationToken.None);
+      var client = new RpcTestServiceClient(networkClient);
 
-      Console.WriteLine("Binary data verzonden.");
+      var company = await client.CompanyFindById(Guid.NewGuid());
 
-      // Ontvangen van data
-      var buffer = new byte[1024];
-      var result = await ws.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-      Console.WriteLine($"Ontvangen: {Encoding.UTF8.GetString(buffer, 0, result.Count)}");
+      Console.WriteLine(company.Name);
 
-      await ws.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+      var subscription = client
+        .GetObservable(Guid.NewGuid())
+        .Subscribe(c => Console.WriteLine(c?.Name));
 
+      Console.ReadKey();
+
+      subscription.Dispose();
     }
   }
 }

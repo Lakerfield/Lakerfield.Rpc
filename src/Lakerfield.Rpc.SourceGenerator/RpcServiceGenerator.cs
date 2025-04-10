@@ -42,14 +42,14 @@ namespace Lakerfield.Rpc
     var hasClientDependencyCheck = context.HasAssemblyReference("Lakerfield.Rpc.Client");
     var hasServerDependencyCheck = context.HasAssemblyReference("Lakerfield.Rpc.Server");
     var hasWebSocketClientDependencyCheck = context.HasAssemblyReference("Lakerfield.Rpc.WebSocketClient");
-    var hasWebSockerServerDependencyCheck = context.HasAssemblyReference("Lakerfield.Rpc.WebSocketServer");
+    var hasWebSocketServerDependencyCheck = context.HasAssemblyReference("Lakerfield.Rpc.WebSocketServer");
 
     // Combine the dependency check with the source generator logic
     var combined = hasCoreDependencyCheck
       .Combine(hasClientDependencyCheck)
       .Combine(hasServerDependencyCheck)
       .Combine(hasWebSocketClientDependencyCheck)
-      .Combine(hasWebSockerServerDependencyCheck);
+      .Combine(hasWebSocketServerDependencyCheck);
 
     context.RegisterSourceOutput(combined, (spc, tuple) =>
     {
@@ -98,7 +98,7 @@ namespace Lakerfield.Rpc
       .Collect();
 
     // Combine the dependency check with the source generator logic
-    var combinedServerClass = serverClassesWithAttribute.Combine(hasServerDependencyCheck).Combine(hasWebSockerServerDependencyCheck);
+    var combinedServerClass = serverClassesWithAttribute.Combine(hasServerDependencyCheck).Combine(hasWebSocketServerDependencyCheck);
 
     // Register the source generator to generate the implementation class only if the dependency is present
     context.RegisterSourceOutput(combinedServerClass, (spc, tuple) =>
@@ -124,17 +124,17 @@ namespace Lakerfield.Rpc
       .Collect();
 
     // Combine the dependency check with the source generator logic
-    var combinedClientClass = clientClassesWithAttribute.Combine(hasServerDependencyCheck).Combine(hasClientDependencyCheck);
+    var combinedClientClass = clientClassesWithAttribute.Combine(hasClientDependencyCheck).Combine(hasWebSocketClientDependencyCheck);
 
     // Register the source generator to generate the implementation class only if the dependency is present
     context.RegisterSourceOutput(combinedClientClass, (spc, tuple) =>
     {
-      var ((symbols, hasServer), hasClient) = tuple;
+      var ((symbols, hasClient), hasWebSocketClient) = tuple;
       foreach (var symbol in symbols.Distinct(SymbolEqualityComparer.Default))
       {
         if (symbol is not null)
         {
-          GenerateClientClass(spc, (INamedTypeSymbol)symbol, hasServer, hasClient);
+          GenerateClientClass(spc, (INamedTypeSymbol)symbol, hasClient, hasWebSocketClient);
         }
       }
     });

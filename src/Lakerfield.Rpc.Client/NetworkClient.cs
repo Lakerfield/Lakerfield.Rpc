@@ -135,8 +135,6 @@ namespace Lakerfield.Rpc
       }
       try
       {
-        //var connection = GetConnection();
-        //connection.
         SendMessage(sendMessage);
         if (isBroadcast)
           return null;

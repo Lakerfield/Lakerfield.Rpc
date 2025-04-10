@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 
 namespace Lakerfield.Rpc
 {
   public abstract class NetworkObservable : IDisposable
   {
-    public abstract void Subscribe(int requestId, LakerfieldRpcServerConnection connection);
+    public abstract void Subscribe(int requestId, LakerfieldRpcWebSocketServerConnection connection);
     public abstract void Dispose();
   }
 
@@ -13,7 +13,7 @@ namespace Lakerfield.Rpc
   {
     private readonly IObservable<T> _observable;
     private int _observableId;
-    private LakerfieldRpcServerConnection _connection;
+    private LakerfieldRpcWebSocketServerConnection _connection;
     private IDisposable? _disposable;
 
     public NetworkObservable(IObservable<T> observable)
@@ -21,7 +21,7 @@ namespace Lakerfield.Rpc
       _observable = observable;
     }
 
-    public override void Subscribe(int observableId, LakerfieldRpcServerConnection connection)
+    public override void Subscribe(int observableId, LakerfieldRpcWebSocketServerConnection connection)
     {
       if (_disposable != null)
         throw new InvalidOperationException(@"Only one subscription supported");

@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Net.WebSockets;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Lakerfield.Rpc.Helpers;
 
@@ -16,38 +18,18 @@ namespace Lakerfield.Rpc
     private readonly object _connectionLock = new object();
     private ulong _messagesSend = 0;
     private ulong _messagesRecieved = 0;
+    private Task _connectedTask;
     private readonly TaskCompletionSource<string> _connectedTaskCompletionSource;
+    private CancellationTokenSource _cancellationTokenSource;
     public Task<string> Connected { get { return _connectedTaskCompletionSource.Task; } }
 
-    public NetworkClient(string host, int port = 30701, bool ipv6 = false)
+    public NetworkClient(Uri uri)
     {
       _connectedTaskCompletionSource = new TaskCompletionSource<string>();
-      var addressFamily = ipv6 ? AddressFamily.InterNetworkV6 : AddressFamily.InterNetwork;
-      var ipEndPoint = ToIpEndPoint(addressFamily, host, port);
+      _cancellationTokenSource = new CancellationTokenSource();
 
-      Open(ipEndPoint);
+      _connectedTask = Open(uri, _cancellationTokenSource.Token);
     }
-
-    /// <summary>
-    /// Returns the server address as an IPEndPoint (does a DNS lookup).
-    /// </summary>
-    /// <param name="addressFamily">The address family of the returned IPEndPoint.</param>
-    /// <returns>The IPEndPoint of the server.</returns>
-    public IPEndPoint ToIpEndPoint(AddressFamily addressFamily, string host, int port)
-    {
-      var ipAddresses = Dns.GetHostAddresses(host);
-      if (ipAddresses != null && ipAddresses.Length != 0)
-        foreach (var ipAddress in ipAddresses)
-          if (ipAddress.AddressFamily == addressFamily)
-            return new IPEndPoint(ipAddress, port);
-
-      _connectedTaskCompletionSource.TrySetCanceled();
-      var message = string.Format("Unable to resolve host name '{0}'.", host);
-      throw new LakerfieldRpcConnectionException(message);
-    }
-
-
-
 
 
     public async Task<RpcMessage> ExecutePing()
@@ -92,7 +74,8 @@ namespace Lakerfield.Rpc
     public IObservable<T> ExecuteObservable<T>(RpcMessage message)
     {
       var networkObservable = new NetworkObservable<T>(this, message);
-      _networkObservables.Add(networkObservable.ObservableId, networkObservable);
+      lock (_networkObservables)
+        _networkObservables.Add(networkObservable.ObservableId, networkObservable);
       return networkObservable.Observable;
     }
 
@@ -135,9 +118,7 @@ namespace Lakerfield.Rpc
       }
       try
       {
-        //var connection = GetConnection();
-        //connection.
-        SendMessage(sendMessage);
+        await SendMessage(sendMessage);
         if (isBroadcast)
           return null;
 
@@ -212,149 +193,182 @@ namespace Lakerfield.Rpc
 
 
 
-    private TcpClient? _tcpClient;
-    private Stream? _stream;
-    private Task _receiveMessagesTask;
-
-    private void Open(IPEndPoint ipEndPoint)
+    private WebSocket? _webSocket;
+    private async Task Open(Uri uri, CancellationToken cancellationToken)
     {
-      var tcpClient = new TcpClient(ipEndPoint.AddressFamily);
-      tcpClient.NoDelay = true; // turn off Nagle
-      tcpClient.ReceiveBufferSize = ClientExportDefaults.TcpReceiveBufferSize;
-      tcpClient.SendBufferSize = ClientExportDefaults.TcpSendBufferSize;
-      tcpClient.Connect(ipEndPoint);
+      using var ws = new ClientWebSocket();
+      await ws.ConnectAsync(uri, cancellationToken);
 
-      var stream = (Stream)tcpClient.GetStream();
-
-      _tcpClient = tcpClient;
-      _stream = stream;
-
-      _receiveMessagesTask = Task.Run(() => ReceiveMessagesLoop());
+      _webSocket = ws;
+      await ProcessAsync(ws, cancellationToken);
+      _webSocket = null;
     }
 
-
-    private async void ReceiveMessagesLoop()
+    private async Task ProcessAsync(WebSocket webSocket, CancellationToken cancellationToken)
     {
+      var buffer = new byte[8192];
+      var ms = new MemoryStream();
       try
       {
-        var networkStream = _stream;// GetNetworkStream();
-        var readTimeout = (int)ClientExportDefaults.SocketTimeout.TotalMilliseconds;
-        if (readTimeout != 0)
-          networkStream.ReadTimeout = readTimeout;
-
-        int bytesRead;
-        var bytes = new Byte[256];
-
-        // Read 4 bytes (int32) for message length
-        while ((bytesRead = await networkStream.ReadAsync(bytes, 0, 4)) != 0)
+        while (webSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
         {
-          while (bytesRead < 4)
+          WebSocketReceiveResult result;
+          do
           {
-            int x;
-            if ((x = await networkStream.ReadAsync(bytes, bytesRead, 4 - bytesRead)) == 0)
-              break;
-            bytesRead += x;
-          }
+            result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
 
-          var messageLength = ReadBsonInt32(bytes);
-          _lastUsedAt = DateTime.UtcNow;
+            if (result.MessageType == WebSocketMessageType.Close)
+            {
+              Console.WriteLine("Server requests close.");
+              await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by server", cancellationToken);
+              return;
+            }
 
-          var message = new DrieNulReceiveMessage<RpcMessage>();
-          using (var memoryStream = new MemoryStream(messageLength - 4))
+            ms.Write(buffer, 0, result.Count);
+          } while (!result.EndOfMessage);
+
+          if (result.MessageType == WebSocketMessageType.Binary)
           {
-            await networkStream.CopyStreamToStreamAsync(memoryStream, messageLength - 4);
-            memoryStream.Position = 0;
+            ms.Position = 0;
 
-            message.ReadFrom(memoryStream, messageLength);
+            _lastUsedAt = DateTime.UtcNow;
+            _messagesRecieved++;
+
+            var request = new DrieNulReceiveMessage<RpcMessage>();
+            request.ReadFrom(ms);
+
+            await HandleMessage(request);
+
+            ms.SetLength(0);
           }
-          await HandleMessage(message);
-          _messagesRecieved++;
         }
+      }
+      catch (WebSocketException wsex)
+      {
+        Console.WriteLine($"WebSocketException: {wsex.Message}");
+        _connectedTaskCompletionSource.TrySetException(wsex);
       }
       catch (Exception ex)
       {
+        Console.WriteLine($"Fout in ProcessAsync: {ex.Message}");
         _connectedTaskCompletionSource.TrySetException(ex);
-        Dispose();
-        //HandleException(ex);
-        //throw;
       }
       finally
       {
         _connectedTaskCompletionSource.TrySetCanceled();
-        Dispose();
-        //Close();
-      }
+        Cleanup();
+        switch (_webSocket.State)
+        {
+          case WebSocketState.CloseSent:
+          case WebSocketState.CloseReceived:
+          case WebSocketState.Closed:
+          case WebSocketState.Aborted:
+            break;
 
-      int ReadBsonInt32(byte[] buffer)
-      {
-        return buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] << 24);
+          default:
+          case WebSocketState.None:
+          case WebSocketState.Open:
+          case WebSocketState.Connecting:
+            await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client requesting close", cancellationToken);
+            break;
+        }
       }
     }
 
-    internal void SendMessage(DrieNulSendMessage<RpcMessage> message)
+
+
+    internal async Task SendMessage(DrieNulSendMessage<RpcMessage> message)
     {
-      using (var stream = new MemoryStream())
-      {
-        message.WriteTo(stream);
-        SendMessage(stream, message.RequestId);
-      }
+      using var stream = new MemoryStream();
+
+      message.WriteTo(stream);
+      stream.Position = 0;
+      await SendMessage(stream, message.RequestId);
     }
 
-    private void SendMessage(Stream stream, int requestId)
-    {
-      if (_tcpClient == null)
-        throw new InvalidOperationException("NetworkClient already disposed");
 
-      //if (_state == DrieNulConnectionState.Closed) { throw new InvalidOperationException("Connection is closed."); }
+    internal async Task SendMessage(MemoryStream memoryStream, int requestId)
+    {
+      var webSocket = _webSocket;
+      if (webSocket == null || webSocket.State != WebSocketState.Open)
+      { // TODO: duplicate???
+        Console.WriteLine("Kan niet verzenden: WebSocket is niet open.");
+        return;
+      }
+
       lock (_connectionLock)
       {
         _lastUsedAt = DateTime.UtcNow;
         //_requestId = requestId;
+      }
+      // TODO lock around write???
+      try
+      {
+        await SendMemoryStreamToWebSocket(memoryStream, _webSocket, CancellationToken.None);
+        _messagesSend++;
+      }
+      catch (WebSocketException wsex)
+      {
+        Console.WriteLine($"WebSocket send error: {wsex.Message}");
+        _connectedTaskCompletionSource.TrySetException(wsex);
+        //HandleException(wsex);
+        //await HandleDisconnectAsync(cancellationToken);
+      }
+      catch (Exception ex)
+      {
+        _connectedTaskCompletionSource.TrySetException(ex);
+        //HandleException(ex);
+        throw;
+      }
+    }
 
-        try
-        {
-          var networkStream = _stream;// GetNetworkStream();
-          var writeTimeout = (int)ClientExportDefaults.SocketTimeout.TotalMilliseconds;
-          if (writeTimeout != 0)
-          {
-            networkStream.WriteTimeout = writeTimeout;
-          }
-          stream.Position = 0;
-          stream.CopyTo(networkStream);
-          _messagesSend++;
-        }
-        catch (Exception ex)
-        {
-          _connectedTaskCompletionSource.TrySetException(ex);
-          Dispose();
-          //HandleException(ex);
-          throw;
-        }
+    private static async Task SendMemoryStreamToWebSocket(MemoryStream memoryStream, WebSocket webSocket, CancellationToken cancellationToken)
+    {
+      memoryStream.Position = 0; // Ensure we're at the start
+      const int chunkSize = 8192;
+      byte[] buffer = new byte[chunkSize];
+
+      int bytesRead;
+      while ((bytesRead = await memoryStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
+      {
+        var segment = new ArraySegment<byte>(buffer, 0, bytesRead);
+        bool isLastChunk = memoryStream.Position == memoryStream.Length;
+        await webSocket.SendAsync(segment, WebSocketMessageType.Binary, isLastChunk, cancellationToken);
       }
     }
 
 
 
+    public void Cleanup()
+    {
+      lock (_pendingTasks)
+      {
+        foreach (var pendingTask in _pendingTasks)
+          pendingTask.Value.TrySetCanceled();
+        _pendingTasks.Clear();
+      }
+
+      lock (_networkObservables)
+      {
+        foreach (var networkObservable in _networkObservables)
+          networkObservable.Value.Queue(new DrieNulReceiveMessage<RpcMessage>()
+          {
+            Opcode = MessageOpcode.ObservableOnException,
+            Message = new RpcExceptionMessage()
+            {
+              Message = "NetworkObservable aborted due to WebSocket closing"
+            }
+          });
+        _networkObservables.Clear();
+      }
+    }
 
 
     public void Dispose()
     {
-      if (_tcpClient != null)
-      {
-        _tcpClient.Close();
-        _tcpClient = null;
-      }
+      if (!_cancellationTokenSource.IsCancellationRequested)
+        _cancellationTokenSource.Cancel();
     }
-
-
-
-
-
-
-
-
-
-
 
 
   }

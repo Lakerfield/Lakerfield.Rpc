@@ -4,12 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Net.Security;
 using System.Net.Sockets;
+using System.Net.WebSockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Lakerfield.Rpc.Helpers;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Lakerfield.Rpc
 {
@@ -32,7 +34,7 @@ namespace Lakerfield.Rpc
     Closed
   }
 
-  public abstract class LakerfieldRpcServerConnection
+  public abstract class LakerfieldRpcWebSocketServerConnection
   {
     internal abstract void SendObservableOnNext(int observableId, object value);
 
@@ -40,18 +42,18 @@ namespace Lakerfield.Rpc
 
     internal abstract void SendObservableOnComplete(int observableId);
 
+    public abstract void TriggerClose();
   }
 
-  public class LakerfieldRpcServerConnection<T> : LakerfieldRpcServerConnection
+  public class LakerfieldRpcWebSocketServerConnection<T> : LakerfieldRpcWebSocketServerConnection
   {
     private static int _lastConnectionId = 0;
 
     private readonly object _connectionLock = new object();
     private readonly int _connectionId;
     private DrieNulConnectionState _state;
-    private TcpClient? _tcpClient;
+    private WebSocket? _webSocket;
     private readonly ILakerfieldRpcClientMessageHandler _clientMessageHandler;
-    private Stream? _stream; // either a NetworkStream or an SslStream wrapping a NetworkStream
     private readonly DateTime _createdAt;
     private DateTime _lastUsedAt; // set every time the connection is Released
     private int _messageCounter;
@@ -60,22 +62,15 @@ namespace Lakerfield.Rpc
 
     //public Model.Klant Klant { get; internal set; }
 
-    internal LakerfieldRpcServerConnection(
-      TcpClient tcpClient,
-      Func<LakerfieldRpcServerConnection<T>, ILakerfieldRpcClientMessageHandler> createMessageRouter,
-      LakerfieldRpcServer<T> listener)
+    internal LakerfieldRpcWebSocketServerConnection(
+      WebSocket webSocket,
+      Func<LakerfieldRpcWebSocketServerConnection<T>, ILakerfieldRpcClientMessageHandler> createMessageRouter)
     {
       _createdAt = DateTime.Now;
       _connectionId = Interlocked.Increment(ref _lastConnectionId);
       _state = DrieNulConnectionState.Initial;
-      _tcpClient = tcpClient;
+      _webSocket = webSocket;
       _clientMessageHandler = createMessageRouter(this);
-
-      Console.WriteLine(@"Connection {0} opened", _connectionId);
-      Globals.Service.Log(LogLevel.Debug, @"Connection {0} opened", _connectionId)
-        .Wait();
-      var clientTask = Task.Run(() => Open());
-      clientTask.ContinueWith(t => listener.Cleanup(this));
     }
 
     /// <summary>
@@ -127,129 +122,87 @@ namespace Lakerfield.Rpc
           || now > _lastUsedAt + ClientExportDefaults.MaxConnectionIdleTime;
     }
 
-    internal async Task Open()
+    public override void TriggerClose()
     {
-      if (_state != DrieNulConnectionState.Initial)
-        throw new InvalidOperationException("Open called more than once.");
+      this._webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Hi its me", CancellationToken.None);
+    }
 
-      _tcpClient.NoDelay = true; // turn off Nagle
-      _tcpClient.ReceiveBufferSize = ClientExportDefaults.TcpReceiveBufferSize;
-      _tcpClient.SendBufferSize = ClientExportDefaults.TcpSendBufferSize;
 
+    public async Task ProcessAsync(CancellationToken cancellationToken = default)
+    {
+      _state = DrieNulConnectionState.Open;
+
+      var buffer = new byte[8192];
+      var ms = new MemoryStream();
       try
       {
-        var stream = (Stream)_tcpClient.GetStream();
-        #region SSL
-        //if (_serverInstance.Settings.UseSsl)
-        //{
-        //  var checkCertificateRevocation = true;
-        //  var clientCertificateCollection = (X509CertificateCollection)null;
-        //  var clientCertificateSelectionCallback = (LocalCertificateSelectionCallback)null;
-        //  var enabledSslProtocols = SslProtocols.Default;
-        //  var serverCertificateValidationCallback = (RemoteCertificateValidationCallback)null;
-
-        //  var sslSettings = _serverInstance.Settings.SslSettings;
-        //  if (sslSettings != null)
-        //  {
-        //    checkCertificateRevocation = sslSettings.CheckCertificateRevocation;
-        //    clientCertificateCollection = sslSettings.ClientCertificateCollection;
-        //    clientCertificateSelectionCallback = sslSettings.ClientCertificateSelectionCallback;
-        //    enabledSslProtocols = sslSettings.EnabledSslProtocols;
-        //    serverCertificateValidationCallback = sslSettings.ServerCertificateValidationCallback;
-        //  }
-
-        //  if (serverCertificateValidationCallback == null && !_serverInstance.Settings.VerifySslCertificate)
-        //  {
-        //    serverCertificateValidationCallback = AcceptAnyCertificate;
-        //  }
-
-        //  var sslStream = new SslStream(stream, false, serverCertificateValidationCallback, clientCertificateSelectionCallback);
-        //  try
-        //  {
-        //    var targetHost = _serverInstance.Address.Host;
-        //    sslStream.AuthenticateAsClient(targetHost, clientCertificateCollection, enabledSslProtocols, checkCertificateRevocation);
-        //  }
-        //  catch
-        //  {
-        //    try { stream.Close(); }
-        //    catch { } // ignore exceptions
-        //    try { tcpClient.Close(); }
-        //    catch { } // ignore exceptions
-        //    throw;
-        //  }
-        //  stream = sslStream;
-        //}
-        #endregion
-        _stream = stream;
-        _state = DrieNulConnectionState.Open;
-
-        //new Authenticator(this, _serverInstance.Settings.Credentials)
-        //    .Authenticate();
-
-        // Get a stream object for reading and writing
-        stream = GetNetworkStream();
-
-        //var readTimeout = (int)_serverInstance.Settings.SocketTimeout.TotalMilliseconds;
-        //if (readTimeout != 0)
-        //  networkStream.ReadTimeout = readTimeout;
-
-        int bytesRead;
-        var bytes = new Byte[256];
-        var firstMessage = true;
-
-        // Read 4 bytes (int32) for message length
-        while ((bytesRead = await stream.ReadAsync(bytes, 0, 4)) != 0)
+        while (_webSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
         {
-          while (bytesRead < 4)
+          WebSocketReceiveResult result;
+          do
           {
-            int x;
-            if ((x = await stream.ReadAsync(bytes, bytesRead, 4 - bytesRead)) == 0)
-              break;
-            bytesRead += x;
-          }
+            result = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), cancellationToken);
 
-          if (firstMessage)
+            if (result.MessageType == WebSocketMessageType.Close)
+            {
+              Console.WriteLine("Client wil sluiten.");
+              await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by server", cancellationToken);
+              return;
+            }
+
+            ms.Write(buffer, 0, result.Count);
+
+          } while (!result.EndOfMessage); // wacht tot laatste fragment
+
+          // binary verwerken
+          if (result.MessageType == WebSocketMessageType.Binary)
           {
-            if (bytes[0] == 0x16) // SSL handshake record
-              goto closeConnection;
-            firstMessage = false;
-          }
+            ms.Position = 0;
 
-          var messageLength = ReadBsonInt32(bytes);
-          _lastUsedAt = DateTime.UtcNow;
+            _lastUsedAt = DateTime.UtcNow;
 
-          using (var memoryStream = new MemoryStream(messageLength - 4))
-          {
-            await stream.CopyStreamToStreamAsync(memoryStream, messageLength - 4);
-            memoryStream.Position = 0;
+            //var messageLength = ReadBsonInt32(bytes);
 
             var request = new DrieNulReceiveMessage<RpcMessage>();
-            request.ReadFrom(memoryStream, messageLength);
+            request.ReadFrom(ms);//, messageLength);
 
             _ = Task.Run(() => HandleMessage(request));
+
+            ms.SetLength(0);
           }
         }
-
-        closeConnection: ;
       }
-      catch (IOException ioException) when (ioException.InnerException is SocketException socketException &&
-                                            socketException.SocketErrorCode switch
-                                            {
-                                              SocketError.ConnectionReset => true,
-                                              _ => false
-                                            })
+      catch (WebSocketException wsex)
       {
+        Console.WriteLine($"WebSocketException: {wsex.Message}");
       }
       catch (Exception ex)
       {
-        Console.WriteLine(ex.Message);
-        // TODO log...
-        //HandleException(ex);
-        //throw;
+        Console.WriteLine($"Fout in ProcessAsync: {ex.Message}");
       }
+      finally
+      {
+        Close();
 
-      // Shutdown and end connection
-      Close();
+        switch (_webSocket.State)
+        {
+          case WebSocketState.CloseSent:
+          case WebSocketState.CloseReceived:
+          case WebSocketState.Closed:
+          case WebSocketState.Aborted:
+            break;
+
+          default:
+          case WebSocketState.None:
+          case WebSocketState.Open:
+          case WebSocketState.Connecting:
+            await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server closing the connection", cancellationToken);
+            break;
+        }
+
+        _webSocket.Dispose();
+        Console.WriteLine("WebSocket gesloten en opgeruimd.");
+      }
     }
 
     private async Task HandleMessage(DrieNulReceiveMessage<RpcMessage> request)
@@ -431,89 +384,67 @@ namespace Lakerfield.Rpc
             catch { } // ignore exceptions
           }
 
-          if (_stream != null)
-          {
-            try { _stream.Close(); }
-            // ReSharper disable once EmptyGeneralCatchClause
-            catch { } // ignore exceptions
-            _stream = null;
-          }
-
-          if (_tcpClient != null)
-          {
-            if (_tcpClient.Connected)
-            {
-              // even though MSDN says TcpClient.Close doesn't close the underlying socket
-              // it actually does (as proven by disassembling TcpClient and by experimentation)
-              try { _tcpClient.Close(); }
-              // ReSharper disable once EmptyGeneralCatchClause
-              catch { } // ignore exceptions
-            }
-            _tcpClient = null;
-          }
-
           _state = DrieNulConnectionState.Closed;
         }
       }
     }
 
 
-
-
-
-
-
-    internal void SendMessage(Stream stream, int requestId)
+    internal async Task SendMessage(MemoryStream memoryStream, int requestId)
     {
       if (_state == DrieNulConnectionState.Closed) { throw new InvalidOperationException("Connection is closed."); }
+      if (_webSocket.State != WebSocketState.Open)
+      { // TODO: duplicate???
+        Console.WriteLine("Kan niet verzenden: WebSocket is niet open.");
+        return;
+      }
+
       lock (_connectionLock)
       {
         _lastUsedAt = DateTime.UtcNow;
         _requestId = requestId;
-
-        try
-        {
-          var networkStream = GetNetworkStream();
-          var writeTimeout = (int)ClientExportDefaults.SocketTimeout.TotalMilliseconds;
-          if (writeTimeout != 0)
-            networkStream.WriteTimeout = writeTimeout;
-          stream.Position = 0;
-          stream.CopyTo(networkStream);
-          _messageCounter++;
-        }
-        catch (Exception ex)
-        {
-          HandleException(ex);
-          throw;
-        }
+      }
+      // TODO lock around write???
+      try
+      {
+        await SendMemoryStreamToWebSocket(memoryStream, _webSocket, CancellationToken.None);
+        _messageCounter++;
+      }
+      catch (WebSocketException wsex)
+      {
+        Console.WriteLine($"WebSocket send error: {wsex.Message}");
+        HandleException(wsex);
+        //await HandleDisconnectAsync(cancellationToken);
+      }
+      catch (Exception ex)
+      {
+        HandleException(ex);
+        throw;
       }
     }
 
-    internal void SendMessage(DrieNulSendMessage<RpcMessage> message)
+    private static async Task SendMemoryStreamToWebSocket(MemoryStream memoryStream, WebSocket webSocket, CancellationToken cancellationToken)
     {
-      using (var stream = new MemoryStream())
+      memoryStream.Position = 0; // Ensure we're at the start
+      const int chunkSize = 8192;
+      byte[] buffer = new byte[chunkSize];
+
+      int bytesRead;
+      while ((bytesRead = await memoryStream.ReadAsync(buffer, 0, buffer.Length, cancellationToken)) > 0)
       {
-        message.WriteTo(stream);
-        SendMessage(stream, message.RequestId);
-       }
+        var segment = new ArraySegment<byte>(buffer, 0, bytesRead);
+        bool isLastChunk = memoryStream.Position == memoryStream.Length;
+        await webSocket.SendAsync(segment, WebSocketMessageType.Binary, isLastChunk, cancellationToken);
+      }
     }
 
-    // private methods
-    private bool AcceptAnyCertificate(
-        object sender,
-        X509Certificate certificate,
-        X509Chain chain,
-        SslPolicyErrors sslPolicyErrors
-    )
+    internal async Task SendMessage(DrieNulSendMessage<RpcMessage> message)
     {
-      return true;
-    }
+      using var stream = new MemoryStream();
 
-    private Stream GetNetworkStream()
-    {
-      if (_state == DrieNulConnectionState.Initial)
-        throw new InvalidOperationException("Connection isn't connected.");
-      return _stream;
+      message.WriteTo(stream);
+      stream.Position = 0;
+      await SendMessage(stream, message.RequestId);
     }
 
     private void HandleException(Exception ex)
@@ -521,13 +452,6 @@ namespace Lakerfield.Rpc
       // TODO
       Close();
     }
-
-
-    public int ReadBsonInt32(byte[] buffer)
-    {
-      return buffer[0] | (buffer[1] << 8) | (buffer[2] << 16) | (buffer[3] << 24);
-    }
-
 
   }
 }
