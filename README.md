@@ -1,6 +1,6 @@
 # Lakerfield.Rpc
 
-Lakerfield.Rpc is a flexible RPC implementation for .NET, enabling remote procedure calls over WebSockets (with optional TCP support) using BSON for message serialization via the `Lakerfield.Bson` library.
+Lakerfield.Rpc is a flexible RPC implementation for .NET, enabling remote procedure calls over WebSockets (with optional TCP support) using BSON for message serialization via the `MongoDB.Bson / Lakerfield.Bson` library.
 
 ## Features
 
