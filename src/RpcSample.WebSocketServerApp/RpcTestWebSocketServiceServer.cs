@@ -8,10 +8,6 @@ namespace RpcSample;
 [RpcServer]
 public partial class RpcTestWebSocketServiceServer : Lakerfield.Rpc.LakerfieldRpcWebSocketServer<IRpcTestService>
 {
-    // public RpcTestServiceServer(IPAddress ipAddress, int port) : base(new Lakerfield.Rpc.LakerfieldRpcMessageRouterFactory(), ipAddress, port)
-    // {
-    // }
-
     public override ILakerfieldRpcClientMessageHandler CreateConnectionMessageRouter(LakerfieldRpcWebSocketServerConnection connection)
     {
       return new ClientConnectionMessageHandler(connection as LakerfieldRpcWebSocketServerConnection<IRpcTestService>);
@@ -22,12 +18,6 @@ public partial class RpcTestWebSocketServiceServer : Lakerfield.Rpc.LakerfieldRp
 
     public partial class ClientConnectionMessageHandler
     {
-
-      //public ClientConnectionMessageHandler(LakerfieldRpcWebSocketServerConnection<IRpcTestService> connection)
-      //{
-
-      //}
-
       public async Task<Models.Company> CompanyFindById(System.Guid id)
       {
         await Task.Delay(100);

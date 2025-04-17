@@ -46,9 +46,9 @@ public partial class RpcServiceGenerator
         continue;
 
       var methodName = member.Name;
-      var returnType = member.ReturnType.ToDisplayString();
+      var returnType = member.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
       var returnTypeGenericType1 = GetGenericTypeArgument(member.ReturnType);
-      var parameters = string.Join(", ", member.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
+      var parameters = string.Join(", ", member.Parameters.Select(p => $"{p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} {p.Name}"));
       var switchParameters = string.Join(", ", member.Parameters.Select(p => $"request.{CapitalizeFirstLetter(p.Name)}"));
 
       if (isTask)
@@ -131,7 +131,7 @@ using {{serviceNamespaceName}};
 
 namespace {{namespaceName}}
 {
-  public partial class {{className}} // {{serviceSymbol.ToDisplayString()}}
+  public partial class {{className}} // {{serviceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}}
   {
     public {{className}}(IPEndPoint endPoint) : base (endPoint)
     {
@@ -212,7 +212,7 @@ using {{serviceNamespaceName}};
 
 namespace {{namespaceName}}
 {
-  public partial class {{className}} // {{serviceSymbol.ToDisplayString()}}
+  public partial class {{className}} // {{serviceSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}}
   {
     public {{className}}() : base ()
     {
