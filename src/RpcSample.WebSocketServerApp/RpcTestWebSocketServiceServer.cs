@@ -8,36 +8,41 @@ namespace RpcSample;
 [RpcServer]
 public partial class RpcTestWebSocketServiceServer : Lakerfield.Rpc.LakerfieldRpcWebSocketServer<IRpcTestService>
 {
-    public override ILakerfieldRpcClientMessageHandler CreateConnectionMessageRouter(LakerfieldRpcWebSocketServerConnection connection)
+  public override ILakerfieldRpcClientMessageHandler CreateConnectionMessageRouter(LakerfieldRpcWebSocketServerConnection connection)
+  {
+    return new ClientConnectionMessageHandler(connection as LakerfieldRpcWebSocketServerConnection<IRpcTestService>);
+  }
+
+
+
+
+  public partial class ClientConnectionMessageHandler : IRpcTestService
+  {
+    public async Task<Models.Company> CompanyFindById(System.Guid id)
     {
-      return new ClientConnectionMessageHandler(connection as LakerfieldRpcWebSocketServerConnection<IRpcTestService>);
+      await Task.Delay(100);
+      //this.Connection.TriggerClose();
+      return new Models.Company()
+      {
+        Id = id.ToString(),
+        Name = "The company",
+        Remarks = "cool",
+      };
     }
 
-
-
-
-    public partial class ClientConnectionMessageHandler
+    public IObservable<RpcSample.Models.Company> GetObservable(System.Guid id)
     {
-      public async Task<Models.Company> CompanyFindById(System.Guid id)
+      return Observable.Interval(TimeSpan.FromSeconds(1)).Select(i => new Models.Company()
       {
-        await Task.Delay(100);
-        //this.Connection.TriggerClose();
-        return new Models.Company()
-        {
-          Id = id.ToString(),
-          Name = "The company",
-          Remarks = "cool",
-        };
-      }
-
-      public IObservable<RpcSample.Models.Company> GetObservable(System.Guid id)
-      {
-        return Observable.Interval(TimeSpan.FromSeconds(1)).Select(i => new Models.Company()
-        {
-          Id = "TEST",
-          Name = $"Company number {i}",
-          Remarks = "x"
-        }).Take(10);
-      }
+        Id = "TEST",
+        Name = $"Company number {i}",
+        Remarks = "x"
+      }).Take(10);
     }
+
+    public async Task MyVoidTest(RpcSample.Models.Company entity)
+    {
+      await Task.Delay(1000);
+    }
+  }
 }

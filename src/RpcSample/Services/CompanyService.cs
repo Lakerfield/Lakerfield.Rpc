@@ -14,4 +14,7 @@ public partial interface IRpcTestService
   Task<(Company, string)> CompanyTest(Company entity, Company entity2, string wouter, int bert);
 
   IObservable<Company> GetObservable(Guid id);
+
+  Task MyVoidTest(Company entity);
+
 }

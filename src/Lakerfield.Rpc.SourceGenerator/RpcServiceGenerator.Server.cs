@@ -49,18 +49,18 @@ public partial class RpcServiceGenerator
       var returnType = member.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
       var returnTypeGenericType1 = GetGenericTypeArgument(member.ReturnType);
       var parameters = string.Join(", ", member.Parameters.Select(p => $"{p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)} {p.Name}"));
-      var switchParameters = string.Join(", ", member.Parameters.Select(p => $"request.{CapitalizeFirstLetter(p.Name)}"));
+      var switchParameters = string.Join(", ", member.Parameters.Select(p => $"request._{CapitalizeFirstLetter(p.Name)}"));
 
       if (isTask)
         taskSwitchSourceBuilder
           .Append($$"""
-                              {{methodName}}Request request => _{{methodName}}(request),
+                              RpcMessage{{methodName}}Request request => _{{methodName}}(request),
 
                     """);
       if (isObservable)
         observableSwitchSourceBuilder
           .Append($$"""
-                              {{methodName}}Request request => _{{methodName}}(request),
+                              RpcMessage{{methodName}}Request request => _{{methodName}}(request),
 
                     """);
 
@@ -92,12 +92,27 @@ public partial class RpcServiceGenerator
         methodSourceBuilder.AppendLine($"      // {methodName} already implemented");
 
       if (isTask)
-        methodSourceBuilder
+      {
+        var isVoidReturnType = returnTypeGenericType1 == null;
+        if (isVoidReturnType)
+          methodSourceBuilder
           .Append($$"""
                           [EditorBrowsable(EditorBrowsableState.Never)]
-                          public async Task<Lakerfield.Rpc.RpcMessage> _{{methodName}}({{methodName}}Request request)
+                          public async Task<Lakerfield.Rpc.RpcMessage> _{{methodName}}(RpcMessage{{methodName}}Request request)
                           {
-                            return new {{methodName}}Response()
+                            await {{methodName}}({{switchParameters}}).ConfigureAwait(false);
+                            return new RpcMessage{{methodName}}Response();
+                          }
+
+
+                    """);
+        else
+          methodSourceBuilder
+          .Append($$"""
+                          [EditorBrowsable(EditorBrowsableState.Never)]
+                          public async Task<Lakerfield.Rpc.RpcMessage> _{{methodName}}(RpcMessage{{methodName}}Request request)
+                          {
+                            return new RpcMessage{{methodName}}Response()
                             {
                               Result = await {{methodName}}({{switchParameters}}).ConfigureAwait(false)
                             };
@@ -105,12 +120,13 @@ public partial class RpcServiceGenerator
 
 
                     """);
-
+      }
+      
       if (isObservable)
         methodSourceBuilder
           .Append($$"""
                           [EditorBrowsable(EditorBrowsableState.Never)]
-                          public Lakerfield.Rpc.NetworkObservable _{{methodName}}({{methodName}}Request request)
+                          public Lakerfield.Rpc.NetworkObservable _{{methodName}}(RpcMessage{{methodName}}Request request)
                           {
                             return new Lakerfield.Rpc.NetworkObservable<{{returnTypeGenericType1}}>({{methodName}}({{switchParameters}}));
                           }

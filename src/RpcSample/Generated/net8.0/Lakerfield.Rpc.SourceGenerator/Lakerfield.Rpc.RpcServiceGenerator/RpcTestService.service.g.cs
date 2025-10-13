@@ -7,14 +7,14 @@ using System.Threading.Tasks;
 namespace RpcSample
 {
   //[EditorBrowsable(EditorBrowsableState.Never)]
-  public class CompanyFindByIdRequest : Lakerfield.Rpc.RpcMessage
+  public class RpcMessageCompanyFindByIdRequest : Lakerfield.Rpc.RpcMessage
   {
-    public System.Guid Id { get; set; }
+    public System.Guid _Id { get; set; }
 
   }
 
   //[EditorBrowsable(EditorBrowsableState.Never)]
-  public class CompanyFindByIdResponse: Lakerfield.Rpc.RpcMessage
+  public class RpcMessageCompanyFindByIdResponse: Lakerfield.Rpc.RpcMessage
   {
     public RpcSample.Models.Company Result { get; set; }
   }
@@ -22,13 +22,13 @@ namespace RpcSample
 
 
   //[EditorBrowsable(EditorBrowsableState.Never)]
-  public class CompanyFindAllRequest : Lakerfield.Rpc.RpcMessage
+  public class RpcMessageCompanyFindAllRequest : Lakerfield.Rpc.RpcMessage
   {
 
   }
 
   //[EditorBrowsable(EditorBrowsableState.Never)]
-  public class CompanyFindAllResponse: Lakerfield.Rpc.RpcMessage
+  public class RpcMessageCompanyFindAllResponse: Lakerfield.Rpc.RpcMessage
   {
     public RpcSample.Models.Company[] Result { get; set; }
   }
@@ -36,14 +36,14 @@ namespace RpcSample
 
 
   //[EditorBrowsable(EditorBrowsableState.Never)]
-  public class CompanySaveRequest : Lakerfield.Rpc.RpcMessage
+  public class RpcMessageCompanySaveRequest : Lakerfield.Rpc.RpcMessage
   {
-    public RpcSample.Models.Company Entity { get; set; }
+    public RpcSample.Models.Company _Entity { get; set; }
 
   }
 
   //[EditorBrowsable(EditorBrowsableState.Never)]
-  public class CompanySaveResponse: Lakerfield.Rpc.RpcMessage
+  public class RpcMessageCompanySaveResponse: Lakerfield.Rpc.RpcMessage
   {
     public RpcSample.Models.Company Result { get; set; }
   }
@@ -51,14 +51,14 @@ namespace RpcSample
 
 
   //[EditorBrowsable(EditorBrowsableState.Never)]
-  public class CompanyDeleteRequest : Lakerfield.Rpc.RpcMessage
+  public class RpcMessageCompanyDeleteRequest : Lakerfield.Rpc.RpcMessage
   {
-    public RpcSample.Models.Company Entity { get; set; }
+    public RpcSample.Models.Company _Entity { get; set; }
 
   }
 
   //[EditorBrowsable(EditorBrowsableState.Never)]
-  public class CompanyDeleteResponse: Lakerfield.Rpc.RpcMessage
+  public class RpcMessageCompanyDeleteResponse: Lakerfield.Rpc.RpcMessage
   {
     public bool Result { get; set; }
   }
@@ -66,17 +66,17 @@ namespace RpcSample
 
 
   //[EditorBrowsable(EditorBrowsableState.Never)]
-  public class CompanyTestRequest : Lakerfield.Rpc.RpcMessage
+  public class RpcMessageCompanyTestRequest : Lakerfield.Rpc.RpcMessage
   {
-    public RpcSample.Models.Company Entity { get; set; }
-    public RpcSample.Models.Company Entity2 { get; set; }
-    public string Wouter { get; set; }
-    public int Bert { get; set; }
+    public RpcSample.Models.Company _Entity { get; set; }
+    public RpcSample.Models.Company _Entity2 { get; set; }
+    public string _Wouter { get; set; }
+    public int _Bert { get; set; }
 
   }
 
   //[EditorBrowsable(EditorBrowsableState.Never)]
-  public class CompanyTestResponse: Lakerfield.Rpc.RpcMessage
+  public class RpcMessageCompanyTestResponse: Lakerfield.Rpc.RpcMessage
   {
     public (RpcSample.Models.Company, string) Result { get; set; }
   }
@@ -84,11 +84,26 @@ namespace RpcSample
 
 
   //[EditorBrowsable(EditorBrowsableState.Never)]
-  public class GetObservableRequest : Lakerfield.Rpc.RpcMessage
+  public class RpcMessageGetObservableRequest : Lakerfield.Rpc.RpcMessage
   {
-    public System.Guid Id { get; set; }
+    public System.Guid _Id { get; set; }
 
   }
+
+  //[EditorBrowsable(EditorBrowsableState.Never)]
+  public class RpcMessageMyVoidTestRequest : Lakerfield.Rpc.RpcMessage
+  {
+    public RpcSample.Models.Company _Entity { get; set; }
+
+  }
+
+  //[EditorBrowsable(EditorBrowsableState.Never)]
+  public class RpcMessageMyVoidTestResponse: Lakerfield.Rpc.RpcMessage
+  {
+    
+  }
+
+
 
 
 
@@ -105,17 +120,19 @@ namespace RpcSample
 
       PreConfigure();
 
-      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<CompanyFindByIdRequest>(AutoMap);
-      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<CompanyFindByIdResponse>(AutoMap);
-      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<CompanyFindAllRequest>(AutoMap);
-      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<CompanyFindAllResponse>(AutoMap);
-      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<CompanySaveRequest>(AutoMap);
-      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<CompanySaveResponse>(AutoMap);
-      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<CompanyDeleteRequest>(AutoMap);
-      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<CompanyDeleteResponse>(AutoMap);
-      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<CompanyTestRequest>(AutoMap);
-      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<CompanyTestResponse>(AutoMap);
-      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<GetObservableRequest>(AutoMap);
+      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<RpcMessageCompanyFindByIdRequest>(AutoMap);
+      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<RpcMessageCompanyFindByIdResponse>(AutoMap);
+      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<RpcMessageCompanyFindAllRequest>(AutoMap);
+      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<RpcMessageCompanyFindAllResponse>(AutoMap);
+      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<RpcMessageCompanySaveRequest>(AutoMap);
+      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<RpcMessageCompanySaveResponse>(AutoMap);
+      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<RpcMessageCompanyDeleteRequest>(AutoMap);
+      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<RpcMessageCompanyDeleteResponse>(AutoMap);
+      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<RpcMessageCompanyTestRequest>(AutoMap);
+      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<RpcMessageCompanyTestResponse>(AutoMap);
+      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<RpcMessageGetObservableRequest>(AutoMap);
+      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<RpcMessageMyVoidTestRequest>(AutoMap);
+      Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<RpcMessageMyVoidTestResponse>(AutoMap);
 
       PostConfigure();
     }

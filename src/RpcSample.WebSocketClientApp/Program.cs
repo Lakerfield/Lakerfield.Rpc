@@ -29,6 +29,8 @@ namespace RpcSample.WebClientApp
       Console.ReadKey();
 
       subscription.Dispose();
+
+      await client.MyVoidTest(company);
     }
   }
 }

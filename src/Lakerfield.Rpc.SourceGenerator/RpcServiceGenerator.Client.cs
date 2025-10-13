@@ -42,15 +42,15 @@ public partial class RpcServiceGenerator
       var returnType = member.ReturnType.ToDisplayString();
       var returnTypeGenericType1 = GetGenericTypeArgument(member.ReturnType);
       var parameters = string.Join(", ", member.Parameters.Select(p => $"{p.Type.ToDisplayString()} {p.Name}"));
-      var parameters2 = string.Join(", ", member.Parameters.Select(p => $"{CapitalizeFirstLetter(p.Name)} = {p.Name}"));
+      var parameters2 = string.Join(", ", member.Parameters.Select(p => $"_{CapitalizeFirstLetter(p.Name)} = {p.Name}"));
 
       if (isTask)
         methodSourceBuilder
           .Append($$"""
                         public async {{returnType}} {{methodName}}({{parameters}})
                         {
-                          var request = new {{methodName}}Request() { {{parameters2}} };
-                          var response = await Client.Execute<{{methodName}}Response>(request).ConfigureAwait(false);
+                          var request = new RpcMessage{{methodName}}Request() { {{parameters2}} };
+                          var response = await Client.Execute<RpcMessage{{methodName}}Response>(request).ConfigureAwait(false);
                           {{(returnTypeGenericType1 == null ? "" : "return response.Result;")}}
                         }
 
@@ -62,7 +62,7 @@ public partial class RpcServiceGenerator
           .Append($$"""
                         public {{returnType}} {{methodName}}({{parameters}})
                         {
-                          var request = new {{methodName}}Request() { {{parameters2}} };
+                          var request = new RpcMessage{{methodName}}Request() { {{parameters2}} };
                           var result = Client.ExecuteObservable<{{returnTypeGenericType1}}>(request);
                           return result;
                         }

@@ -9,7 +9,7 @@ public partial class RpcTestServiceClient : IRpcTestService
 {
   public async Task<Company> Evelien2()
   {
-    var result = await Client.Execute<CompanyFindByIdResponse>(new CompanyFindByIdRequest()
+    var result = await Client.Execute<RpcMessageCompanyFindByIdResponse>(new RpcMessageCompanyFindByIdRequest()
     {
 
     });

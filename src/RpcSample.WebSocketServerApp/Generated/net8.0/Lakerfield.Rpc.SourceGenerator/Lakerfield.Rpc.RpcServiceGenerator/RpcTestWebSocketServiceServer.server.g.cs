@@ -6,7 +6,7 @@ using RpcSample;
 
 namespace RpcSample
 {
-  public partial class RpcTestWebSocketServiceServer // RpcSample.IRpcTestService
+  public partial class RpcTestWebSocketServiceServer // global::RpcSample.IRpcTestService
   {
     public RpcTestWebSocketServiceServer() : base ()
     {
@@ -41,11 +41,12 @@ namespace RpcSample
         System.Console.WriteLine($"new message {message.GetType().Name}");
 #endif
         return message switch {
-          CompanyFindByIdRequest request => _CompanyFindById(request),
-          CompanyFindAllRequest request => _CompanyFindAll(request),
-          CompanySaveRequest request => _CompanySave(request),
-          CompanyDeleteRequest request => _CompanyDelete(request),
-          CompanyTestRequest request => _CompanyTest(request),
+          RpcMessageCompanyFindByIdRequest request => _CompanyFindById(request),
+          RpcMessageCompanyFindAllRequest request => _CompanyFindAll(request),
+          RpcMessageCompanySaveRequest request => _CompanySave(request),
+          RpcMessageCompanyDeleteRequest request => _CompanyDelete(request),
+          RpcMessageCompanyTestRequest request => _CompanyTest(request),
+          RpcMessageMyVoidTestRequest request => _MyVoidTest(request),
 
           _ => TaskNotImplementedMessage(message)
         };
@@ -65,7 +66,7 @@ namespace RpcSample
         System.Console.WriteLine($"new message {message.GetType().Name}");
 #endif
         return message switch {
-          GetObservableRequest request => _GetObservable(request),
+          RpcMessageGetObservableRequest request => _GetObservable(request),
 
           _ => ObservableNotImplementedMessage(message)
         };
@@ -78,79 +79,87 @@ namespace RpcSample
 
       // CompanyFindById already implemented
       [EditorBrowsable(EditorBrowsableState.Never)]
-      public async Task<Lakerfield.Rpc.RpcMessage> _CompanyFindById(CompanyFindByIdRequest request)
+      public async Task<Lakerfield.Rpc.RpcMessage> _CompanyFindById(RpcMessageCompanyFindByIdRequest request)
       {
-        return new CompanyFindByIdResponse()
+        return new RpcMessageCompanyFindByIdResponse()
         {
-          Result = await CompanyFindById(request.Id).ConfigureAwait(false)
+          Result = await CompanyFindById(request._Id).ConfigureAwait(false)
         };
       }
 
       #warning CompanyFindAll of IRpcTestService is not implemented
-      public System.Threading.Tasks.Task<RpcSample.Models.Company[]> CompanyFindAll()
+      public global::System.Threading.Tasks.Task<global::RpcSample.Models.Company[]> CompanyFindAll()
       {
         throw new NotImplementedException("CompanyFindAll of IRpcTestService is not implemented");
       }
 
       [EditorBrowsable(EditorBrowsableState.Never)]
-      public async Task<Lakerfield.Rpc.RpcMessage> _CompanyFindAll(CompanyFindAllRequest request)
+      public async Task<Lakerfield.Rpc.RpcMessage> _CompanyFindAll(RpcMessageCompanyFindAllRequest request)
       {
-        return new CompanyFindAllResponse()
+        return new RpcMessageCompanyFindAllResponse()
         {
           Result = await CompanyFindAll().ConfigureAwait(false)
         };
       }
 
       #warning CompanySave of IRpcTestService is not implemented
-      public System.Threading.Tasks.Task<RpcSample.Models.Company> CompanySave(RpcSample.Models.Company entity)
+      public global::System.Threading.Tasks.Task<global::RpcSample.Models.Company> CompanySave(global::RpcSample.Models.Company entity)
       {
         throw new NotImplementedException("CompanySave of IRpcTestService is not implemented");
       }
 
       [EditorBrowsable(EditorBrowsableState.Never)]
-      public async Task<Lakerfield.Rpc.RpcMessage> _CompanySave(CompanySaveRequest request)
+      public async Task<Lakerfield.Rpc.RpcMessage> _CompanySave(RpcMessageCompanySaveRequest request)
       {
-        return new CompanySaveResponse()
+        return new RpcMessageCompanySaveResponse()
         {
-          Result = await CompanySave(request.Entity).ConfigureAwait(false)
+          Result = await CompanySave(request._Entity).ConfigureAwait(false)
         };
       }
 
       #warning CompanyDelete of IRpcTestService is not implemented
-      public System.Threading.Tasks.Task<bool> CompanyDelete(RpcSample.Models.Company entity)
+      public global::System.Threading.Tasks.Task<bool> CompanyDelete(global::RpcSample.Models.Company entity)
       {
         throw new NotImplementedException("CompanyDelete of IRpcTestService is not implemented");
       }
 
       [EditorBrowsable(EditorBrowsableState.Never)]
-      public async Task<Lakerfield.Rpc.RpcMessage> _CompanyDelete(CompanyDeleteRequest request)
+      public async Task<Lakerfield.Rpc.RpcMessage> _CompanyDelete(RpcMessageCompanyDeleteRequest request)
       {
-        return new CompanyDeleteResponse()
+        return new RpcMessageCompanyDeleteResponse()
         {
-          Result = await CompanyDelete(request.Entity).ConfigureAwait(false)
+          Result = await CompanyDelete(request._Entity).ConfigureAwait(false)
         };
       }
 
       #warning CompanyTest of IRpcTestService is not implemented
-      public System.Threading.Tasks.Task<(RpcSample.Models.Company, string)> CompanyTest(RpcSample.Models.Company entity, RpcSample.Models.Company entity2, string wouter, int bert)
+      public global::System.Threading.Tasks.Task<(global::RpcSample.Models.Company, string)> CompanyTest(global::RpcSample.Models.Company entity, global::RpcSample.Models.Company entity2, string wouter, int bert)
       {
         throw new NotImplementedException("CompanyTest of IRpcTestService is not implemented");
       }
 
       [EditorBrowsable(EditorBrowsableState.Never)]
-      public async Task<Lakerfield.Rpc.RpcMessage> _CompanyTest(CompanyTestRequest request)
+      public async Task<Lakerfield.Rpc.RpcMessage> _CompanyTest(RpcMessageCompanyTestRequest request)
       {
-        return new CompanyTestResponse()
+        return new RpcMessageCompanyTestResponse()
         {
-          Result = await CompanyTest(request.Entity, request.Entity2, request.Wouter, request.Bert).ConfigureAwait(false)
+          Result = await CompanyTest(request._Entity, request._Entity2, request._Wouter, request._Bert).ConfigureAwait(false)
         };
       }
 
       // GetObservable already implemented
       [EditorBrowsable(EditorBrowsableState.Never)]
-      public Lakerfield.Rpc.NetworkObservable _GetObservable(GetObservableRequest request)
+      public Lakerfield.Rpc.NetworkObservable _GetObservable(RpcMessageGetObservableRequest request)
       {
-        return new Lakerfield.Rpc.NetworkObservable<RpcSample.Models.Company>(GetObservable(request.Id));
+        return new Lakerfield.Rpc.NetworkObservable<RpcSample.Models.Company>(GetObservable(request._Id));
+      }
+
+      // MyVoidTest already implemented
+      [EditorBrowsable(EditorBrowsableState.Never)]
+      public async Task<Lakerfield.Rpc.RpcMessage> _MyVoidTest(RpcMessageMyVoidTestRequest request)
+      {
+        await MyVoidTest(request._Entity).ConfigureAwait(false);
+        return new RpcMessageMyVoidTestResponse();
       }
 
 

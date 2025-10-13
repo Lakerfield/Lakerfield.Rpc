@@ -46,14 +46,14 @@ public partial class RpcServiceGenerator
       foreach (var memberParameter in member.Parameters)
       {
         methodPropertiesSourceBuilder.AppendLine(
-          $"    public {memberParameter.Type} {CapitalizeFirstLetter(memberParameter.Name)} {{ get; set; }}");
+          $"    public {memberParameter.Type.ToDisplayString()} _{CapitalizeFirstLetter(memberParameter.Name)} {{ get; set; }}");
       }
 
       if (isTask || isObservable)
       {  requestResponseModelsSourceBuilder
           .Append($$"""
                       //[EditorBrowsable(EditorBrowsableState.Never)]
-                      public class {{methodName}}Request : Lakerfield.Rpc.RpcMessage
+                      public class RpcMessage{{methodName}}Request : Lakerfield.Rpc.RpcMessage
                       {
                     {{methodPropertiesSourceBuilder.ToString()}}
                       }
@@ -62,19 +62,21 @@ public partial class RpcServiceGenerator
                     """);
         bsonClassMapsSourceBuilder
           .Append($$"""
-                          Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<{{methodName}}Request>(AutoMap);
+                          Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<RpcMessage{{methodName}}Request>(AutoMap);
 
                     """);
       }
 
       if (isTask)
       {
+        var isVoidReturnType = returnTypeExTask == null;
+        
         requestResponseModelsSourceBuilder
           .Append($$"""
                       //[EditorBrowsable(EditorBrowsableState.Never)]
-                      public class {{methodName}}Response: Lakerfield.Rpc.RpcMessage
+                      public class RpcMessage{{methodName}}Response: Lakerfield.Rpc.RpcMessage
                       {
-                        public {{returnTypeExTask}} Result { get; set; }
+                        {{(isVoidReturnType ? "" : $"public {returnTypeExTask} Result {{ get; set; }}")}}
                       }
 
 
@@ -83,7 +85,7 @@ public partial class RpcServiceGenerator
                     """);
         bsonClassMapsSourceBuilder
           .Append($$"""
-                          Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<{{methodName}}Response>(AutoMap);
+                          Lakerfield.Bson.Serialization.BsonClassMap.RegisterClassMap<RpcMessage{{methodName}}Response>(AutoMap);
 
                     """);
       }

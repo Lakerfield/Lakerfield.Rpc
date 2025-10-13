@@ -21,9 +21,9 @@ public static class Program
         RequestId = 42,
         ResponseTo = 7,
         ObservableId = 9,
-        Message = new CompanyFindByIdRequest()
+        Message = new RpcMessageCompanyFindByIdRequest()
         {
-          Id = Guid.NewGuid()
+          _Id = Guid.NewGuid()
         },
         //MessageLength = 
       };
