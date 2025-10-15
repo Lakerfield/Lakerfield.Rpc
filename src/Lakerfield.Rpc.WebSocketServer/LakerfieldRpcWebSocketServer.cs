@@ -68,17 +68,10 @@ namespace Lakerfield.Rpc
 
     public static IApplicationBuilder UseRpcWebSocketServer<TService>(this IApplicationBuilder app, string pathMatch)
     {
-      //var serviceProvider = app.ApplicationServices;
-      //var webSocketOptions = serviceProvider.GetService<WebSocketOptions>();
-      //if (webSocketOptions == null)
-      //{
-      //  throw new InvalidOperationException("WebSockets middleware must be enabled with .UseWebSockets() first.");
-      //}
-
-      //var server = app.ApplicationServices.GetRequiredService<LakerfieldRpcWebSocketServer<T>>();
-      //app.Map("/ws", server.WebSocketHandler);
-
-      app.UseMiddleware<LakerfieldRpcWebSocketServerMiddleware<TService>>();
+      app.Map(pathMatch, a =>
+      {
+        a.UseMiddleware<LakerfieldRpcWebSocketServerMiddleware<TService>>();
+      });
 
       return app;
     }
