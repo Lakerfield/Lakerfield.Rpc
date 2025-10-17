@@ -19,16 +19,15 @@ namespace Lakerfield.Rpc
     private ulong _messagesSend = 0;
     private ulong _messagesRecieved = 0;
     private Task _connectedTask;
-    private readonly TaskCompletionSource<string> _connectedTaskCompletionSource;
+    private Task _runTask;
     private CancellationTokenSource _cancellationTokenSource;
-    public Task<string> Connected { get { return _connectedTaskCompletionSource.Task; } }
+    public Task Connected { get { return _connectedTask; } }
 
     public NetworkClient(Uri uri)
     {
-      _connectedTaskCompletionSource = new TaskCompletionSource<string>();
       _cancellationTokenSource = new CancellationTokenSource();
 
-      _connectedTask = Open(uri, _cancellationTokenSource.Token);
+      _runTask = Run(uri, _cancellationTokenSource.Token);
     }
 
 
@@ -193,14 +192,23 @@ namespace Lakerfield.Rpc
 
 
     private WebSocket? _webSocket;
-    private async Task Open(Uri uri, CancellationToken cancellationToken)
+    private async Task Run(Uri uri, CancellationToken cancellationToken)
     {
-      using var ws = new ClientWebSocket();
-      await ws.ConnectAsync(uri, cancellationToken);
+      try
+      {
+        using var ws = new ClientWebSocket();
+        _connectedTask = ws.ConnectAsync(uri, cancellationToken);
+        await _connectedTask;
 
-      _webSocket = ws;
-      await ProcessAsync(ws, cancellationToken);
-      _webSocket = null;
+        _webSocket = ws;
+        await ProcessAsync(ws, cancellationToken);
+        _webSocket = null;
+      }
+      catch (Exception e)
+      {
+        Console.WriteLine(e);
+        throw;
+      }
     }
 
     private async Task ProcessAsync(WebSocket webSocket, CancellationToken cancellationToken)
@@ -245,16 +253,13 @@ namespace Lakerfield.Rpc
       catch (WebSocketException wsex)
       {
         Console.WriteLine($"WebSocketException: {wsex.Message}");
-        _connectedTaskCompletionSource.TrySetException(wsex);
       }
       catch (Exception ex)
       {
         Console.WriteLine($"Fout in ProcessAsync: {ex.Message}");
-        _connectedTaskCompletionSource.TrySetException(ex);
       }
       finally
       {
-        _connectedTaskCompletionSource.TrySetCanceled();
         Cleanup();
         switch (_webSocket.State)
         {
@@ -291,7 +296,7 @@ namespace Lakerfield.Rpc
       var webSocket = _webSocket;
       if (webSocket == null || webSocket.State != WebSocketState.Open)
       { // TODO: duplicate???
-        Console.WriteLine("Kan niet verzenden: WebSocket is niet open.");
+        Console.WriteLine($"Cannot send message: WebSocket is {_webSocket.State}");
         return;
       }
 
@@ -309,13 +314,11 @@ namespace Lakerfield.Rpc
       catch (WebSocketException wsex)
       {
         Console.WriteLine($"WebSocket send error: {wsex.Message}");
-        _connectedTaskCompletionSource.TrySetException(wsex);
         //HandleException(wsex);
         //await HandleDisconnectAsync(cancellationToken);
       }
       catch (Exception ex)
       {
-        _connectedTaskCompletionSource.TrySetException(ex);
         //HandleException(ex);
         throw;
       }

@@ -145,7 +145,7 @@ namespace Lakerfield.Rpc
 
             if (result.MessageType == WebSocketMessageType.Close)
             {
-              Console.WriteLine("Client wil sluiten.");
+              Console.WriteLine("Client requesting close");
               await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by server", cancellationToken);
               return;
             }
@@ -201,7 +201,6 @@ namespace Lakerfield.Rpc
         }
 
         _webSocket.Dispose();
-        Console.WriteLine("WebSocket gesloten en opgeruimd.");
       }
     }
 
@@ -317,7 +316,7 @@ namespace Lakerfield.Rpc
       }
 
       if (occurredException != null)
-        await Globals.Service.Log(LogLevel.Error, occurredException, "Fout in HandleMessage");
+        await Globals.Service.Log(LogLevel.Error, occurredException, "Exception in HandleMessage");
 
       reply.ResponseTo = request.RequestId;
       SendMessage(reply);
@@ -395,7 +394,7 @@ namespace Lakerfield.Rpc
       if (_state == DrieNulConnectionState.Closed) { throw new InvalidOperationException("Connection is closed."); }
       if (_webSocket.State != WebSocketState.Open)
       { // TODO: duplicate???
-        Console.WriteLine("Kan niet verzenden: WebSocket is niet open.");
+        Console.WriteLine($"Cannot send message: WebSocket is {_webSocket.State}.");
         return;
       }
 
