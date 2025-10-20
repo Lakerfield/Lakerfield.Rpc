@@ -52,7 +52,7 @@ public partial class RpcServiceGenerator
       if (isTask || isObservable)
       {  requestResponseModelsSourceBuilder
           .Append($$"""
-                      //[EditorBrowsable(EditorBrowsableState.Never)]
+                      [EditorBrowsable(EditorBrowsableState.Never)]
                       public class RpcMessage{{methodName}}Request : Lakerfield.Rpc.RpcMessage
                       {
                     {{methodPropertiesSourceBuilder.ToString()}}
@@ -73,7 +73,7 @@ public partial class RpcServiceGenerator
         
         requestResponseModelsSourceBuilder
           .Append($$"""
-                      //[EditorBrowsable(EditorBrowsableState.Never)]
+                      [EditorBrowsable(EditorBrowsableState.Never)]
                       public class RpcMessage{{methodName}}Response: Lakerfield.Rpc.RpcMessage
                       {
                         {{(isVoidReturnType ? "" : $"public {returnTypeExTask} Result {{ get; set; }}")}}

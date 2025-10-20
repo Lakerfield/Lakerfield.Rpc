@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Lakerfield.Rpc;
 using TestNs.Network.Contract;
 using TestNs.Network.Models;
-using LoginRequest = TestNs.Network.Models.LoginRequest;
 
 namespace TestNs.Network.Server;
 
@@ -35,8 +35,10 @@ public partial class RpcTestNsServer : Lakerfield.Rpc.LakerfieldRpcWebSocketServ
 
     public IObservable<User> Login(LoginRequest theRequest)
     {
-
-      return null;
+      //return null;
+      return Observable
+        .Range(1, 10)
+        .Select(i => new User() { Name = $"User {i}"});
     }
   }
 }

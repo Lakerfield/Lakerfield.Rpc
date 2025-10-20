@@ -6,13 +6,13 @@ using System.Threading.Tasks;
 
 namespace TestNs.Network.Contract
 {
-  //[EditorBrowsable(EditorBrowsableState.Never)]
+  [EditorBrowsable(EditorBrowsableState.Never)]
   public class RpcMessageHelloHelloRequest : Lakerfield.Rpc.RpcMessage
   {
 
   }
 
-  //[EditorBrowsable(EditorBrowsableState.Never)]
+  [EditorBrowsable(EditorBrowsableState.Never)]
   public class RpcMessageHelloHelloResponse: Lakerfield.Rpc.RpcMessage
   {
     public bool Result { get; set; }
@@ -20,7 +20,7 @@ namespace TestNs.Network.Contract
 
 
 
-  //[EditorBrowsable(EditorBrowsableState.Never)]
+  [EditorBrowsable(EditorBrowsableState.Never)]
   public class RpcMessageLoginRequest : Lakerfield.Rpc.RpcMessage
   {
     public TestNs.Network.Models.LoginRequest _TheRequest { get; set; }

@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace RpcSample
 {
-  //[EditorBrowsable(EditorBrowsableState.Never)]
+  [EditorBrowsable(EditorBrowsableState.Never)]
   public class RpcMessageCompanyFindByIdRequest : Lakerfield.Rpc.RpcMessage
   {
     public System.Guid _Id { get; set; }
 
   }
 
-  //[EditorBrowsable(EditorBrowsableState.Never)]
+  [EditorBrowsable(EditorBrowsableState.Never)]
   public class RpcMessageCompanyFindByIdResponse: Lakerfield.Rpc.RpcMessage
   {
     public RpcSample.Models.Company Result { get; set; }
@@ -21,13 +21,13 @@ namespace RpcSample
 
 
 
-  //[EditorBrowsable(EditorBrowsableState.Never)]
+  [EditorBrowsable(EditorBrowsableState.Never)]
   public class RpcMessageCompanyFindAllRequest : Lakerfield.Rpc.RpcMessage
   {
 
   }
 
-  //[EditorBrowsable(EditorBrowsableState.Never)]
+  [EditorBrowsable(EditorBrowsableState.Never)]
   public class RpcMessageCompanyFindAllResponse: Lakerfield.Rpc.RpcMessage
   {
     public RpcSample.Models.Company[] Result { get; set; }
@@ -35,14 +35,14 @@ namespace RpcSample
 
 
 
-  //[EditorBrowsable(EditorBrowsableState.Never)]
+  [EditorBrowsable(EditorBrowsableState.Never)]
   public class RpcMessageCompanySaveRequest : Lakerfield.Rpc.RpcMessage
   {
     public RpcSample.Models.Company _Entity { get; set; }
 
   }
 
-  //[EditorBrowsable(EditorBrowsableState.Never)]
+  [EditorBrowsable(EditorBrowsableState.Never)]
   public class RpcMessageCompanySaveResponse: Lakerfield.Rpc.RpcMessage
   {
     public RpcSample.Models.Company Result { get; set; }
@@ -50,14 +50,14 @@ namespace RpcSample
 
 
 
-  //[EditorBrowsable(EditorBrowsableState.Never)]
+  [EditorBrowsable(EditorBrowsableState.Never)]
   public class RpcMessageCompanyDeleteRequest : Lakerfield.Rpc.RpcMessage
   {
     public RpcSample.Models.Company _Entity { get; set; }
 
   }
 
-  //[EditorBrowsable(EditorBrowsableState.Never)]
+  [EditorBrowsable(EditorBrowsableState.Never)]
   public class RpcMessageCompanyDeleteResponse: Lakerfield.Rpc.RpcMessage
   {
     public bool Result { get; set; }
@@ -65,7 +65,7 @@ namespace RpcSample
 
 
 
-  //[EditorBrowsable(EditorBrowsableState.Never)]
+  [EditorBrowsable(EditorBrowsableState.Never)]
   public class RpcMessageCompanyTestRequest : Lakerfield.Rpc.RpcMessage
   {
     public RpcSample.Models.Company _Entity { get; set; }
@@ -75,7 +75,7 @@ namespace RpcSample
 
   }
 
-  //[EditorBrowsable(EditorBrowsableState.Never)]
+  [EditorBrowsable(EditorBrowsableState.Never)]
   public class RpcMessageCompanyTestResponse: Lakerfield.Rpc.RpcMessage
   {
     public (RpcSample.Models.Company, string) Result { get; set; }
@@ -83,21 +83,21 @@ namespace RpcSample
 
 
 
-  //[EditorBrowsable(EditorBrowsableState.Never)]
+  [EditorBrowsable(EditorBrowsableState.Never)]
   public class RpcMessageGetObservableRequest : Lakerfield.Rpc.RpcMessage
   {
     public System.Guid _Id { get; set; }
 
   }
 
-  //[EditorBrowsable(EditorBrowsableState.Never)]
+  [EditorBrowsable(EditorBrowsableState.Never)]
   public class RpcMessageMyVoidTestRequest : Lakerfield.Rpc.RpcMessage
   {
     public RpcSample.Models.Company _Entity { get; set; }
 
   }
 
-  //[EditorBrowsable(EditorBrowsableState.Never)]
+  [EditorBrowsable(EditorBrowsableState.Never)]
   public class RpcMessageMyVoidTestResponse: Lakerfield.Rpc.RpcMessage
   {
     
