@@ -319,7 +319,7 @@ namespace Lakerfield.Rpc
         await Globals.Service.Log(LogLevel.Error, occurredException, "Exception in HandleMessage");
 
       reply.ResponseTo = request.RequestId;
-      SendMessage(reply);
+      _ = SendMessage(reply);
     }
 
     internal override void SendObservableOnNext(int observableId, object value)
@@ -334,7 +334,7 @@ namespace Lakerfield.Rpc
             Value = value
           }
       };
-      SendMessage(reply);
+      _ = SendMessage(reply);
     }
 
     internal override void SendObservableOnError(int observableId, Exception exception)
@@ -352,7 +352,7 @@ namespace Lakerfield.Rpc
       };
       try
       {
-        SendMessage(reply);
+        _ = SendMessage(reply);
       }
       catch (IOException)
       { }
@@ -367,7 +367,7 @@ namespace Lakerfield.Rpc
         ObservableId = observableId,
         Message = null
       };
-      SendMessage(reply);
+      _ = SendMessage(reply);
     }
 
     internal void Close()
@@ -441,7 +441,15 @@ namespace Lakerfield.Rpc
     {
       using var stream = new MemoryStream();
 
-      message.WriteTo(stream);
+      try
+      {
+        message.WriteTo(stream);
+      }
+      catch (Exception e)
+      {
+        Console.WriteLine($"Server.SendMessage failed bson serialization: {e.Message}");
+        throw;
+      }
       stream.Position = 0;
       await SendMessage(stream, message.RequestId);
     }

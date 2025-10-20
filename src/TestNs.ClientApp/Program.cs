@@ -29,6 +29,10 @@ namespace TestNs.ClientApp
       error =>
       {
         Console.WriteLine($"Exception {error.Message}");
+      },
+      () =>
+      {
+        Console.WriteLine($"Completed");
       });
 
       Console.ReadLine();

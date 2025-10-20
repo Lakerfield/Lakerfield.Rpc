@@ -285,7 +285,16 @@ namespace Lakerfield.Rpc
     {
       using var stream = new MemoryStream();
 
-      message.WriteTo(stream);
+      try
+      {
+        message.WriteTo(stream);
+      }
+      catch (Exception e)
+      {
+        Console.WriteLine($"Client.SendMessage failed bson serialization: {e.Message}");
+        throw;
+      }
+
       stream.Position = 0;
       await SendMessage(stream, message.RequestId);
     }

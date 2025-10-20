@@ -30,7 +30,7 @@ public static partial class RpcContractBsonConfigurator
   {
     return type.IsConstructedGenericType ?
       type.GetGenericArguments().All(IsAllowedType) :
-      type.FullName.StartsWith("TestNS");
+      type.FullName.StartsWith("TestNs");
   }
 
   static partial void PreConfigure()
