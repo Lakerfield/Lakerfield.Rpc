@@ -61,7 +61,7 @@ namespace Lakerfield.Rpc
   {
     public static IServiceCollection AddRpcWebSocketServer<TService, TImplementation>(this IServiceCollection services) where TImplementation : LakerfieldRpcWebSocketServer<TService>, new()
     {
-      services.AddSingleton<LakerfieldRpcWebSocketServer<TService>>((_) => new TImplementation());
+      services.AddSingleton<LakerfieldRpcWebSocketServer<TService>>(serviceProvider => serviceProvider.GetService<TImplementation>());
 
       return services;
     }
