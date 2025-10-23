@@ -18,10 +18,10 @@ namespace Lakerfield.Rpc
     private readonly object _connectionLock = new object();
     private ulong _messagesSend = 0;
     private ulong _messagesRecieved = 0;
-    private Task _connectedTask;
     private Task _runTask;
     private CancellationTokenSource _cancellationTokenSource;
-    public Task Connected { get { return _connectedTask; } }
+    private TaskCompletionSource _connectedTaskCompletionSource = new TaskCompletionSource();
+    public Task Connected { get { return _connectedTaskCompletionSource.Task; } }
 
     public NetworkClient(Uri uri)
     {
@@ -196,17 +196,36 @@ namespace Lakerfield.Rpc
     {
       try
       {
-        using var ws = new ClientWebSocket();
-        _connectedTask = ws.ConnectAsync(uri, cancellationToken);
-        await _connectedTask;
+        var connectionAttempt = 0;
+
+        retryConnect:
+        if (connectionAttempt > 0)
+          await Task.Delay(TimeSpan.FromSeconds(connectionAttempt), cancellationToken);
+        
+        connectionAttempt++;
+        var ws = new ClientWebSocket();
+        try
+        {
+          await ws.ConnectAsync(uri, cancellationToken);
+        }
+        catch (WebSocketException webSocketException)
+        {
+          if (webSocketException.WebSocketErrorCode == WebSocketError.Faulted)
+            if (connectionAttempt <= 5)
+              goto retryConnect;
+          throw;
+        }
 
         _webSocket = ws;
+        _connectedTaskCompletionSource.TrySetResult();
         await ProcessAsync(ws, cancellationToken);
         _webSocket = null;
+        ws.Dispose();
       }
       catch (Exception e)
       {
         Console.WriteLine(e);
+        _connectedTaskCompletionSource.TrySetException(e);
         throw;
       }
     }
@@ -305,7 +324,7 @@ namespace Lakerfield.Rpc
       var webSocket = _webSocket;
       if (webSocket == null || webSocket.State != WebSocketState.Open)
       { // TODO: duplicate???
-        Console.WriteLine($"Cannot send message: WebSocket is {_webSocket.State}");
+        Console.WriteLine($"Cannot send message: WebSocket is {_webSocket?.State}");
         return;
       }
 
