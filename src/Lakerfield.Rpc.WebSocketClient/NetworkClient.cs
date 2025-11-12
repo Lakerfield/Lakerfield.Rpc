@@ -234,6 +234,7 @@ namespace Lakerfield.Rpc
     {
       var buffer = new byte[8192];
       var ms = new MemoryStream();
+      string closeMessage = "Client requesting close";
       try
       {
         while (webSocket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
@@ -272,10 +273,12 @@ namespace Lakerfield.Rpc
       catch (WebSocketException wsex)
       {
         Console.WriteLine($"WebSocketException: {wsex.Message}");
+        closeMessage += wsex.Message;
       }
       catch (Exception ex)
       {
         Console.WriteLine($"Fout in ProcessAsync: {ex.Message}");
+        closeMessage += ex.Message;
       }
       finally
       {
@@ -292,7 +295,7 @@ namespace Lakerfield.Rpc
           case WebSocketState.None:
           case WebSocketState.Open:
           case WebSocketState.Connecting:
-            await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client requesting close", cancellationToken);
+            await _webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, closeMessage, cancellationToken);
             break;
         }
       }
