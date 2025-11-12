@@ -34,7 +34,7 @@ namespace Lakerfield.Rpc
   }
 }
 
-""", Encoding.UTF8));
+""".Replace("\r\n", "\n"), Encoding.UTF8));
     });
 
     // Check if the project references assemblies
@@ -62,7 +62,7 @@ namespace Lakerfield.Rpc
         // has Lakerfield.Rpc.WebSocketServer {{(webSocketServer ? "YES":"no")}}
 
         """;
-      spc.AddSource($"LakerfieldRpc.SourceGenerator.info.g.cs", SourceText.From(source, Encoding.UTF8));
+      spc.AddSource($"LakerfieldRpc.SourceGenerator.info.g.cs", SourceText.From(source.Replace("\r\n", "\n"), Encoding.UTF8));
     });
 
 
@@ -223,7 +223,7 @@ namespace Lakerfield.Rpc
       """);
 
     // Add the generated source
-    context.AddSource($"{className.TrimStart('I')}.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
+    context.AddSource($"{className.TrimStart('I')}.g.cs", SourceText.From(sourceBuilder.ToString().Replace("\r\n", "\n"), Encoding.UTF8));
   }
 
 
@@ -297,7 +297,7 @@ namespace Lakerfield.Rpc
       var abstractClassName = interfaceName.TrimStart('I'); // Simple heuristic to name the abstract class
       var source = GenerateAbstractClass(namespaceName, interfaceName, abstractClassName, symbol);
 
-      context.AddSource($"{abstractClassName}.g.cs", SourceText.From(source, Encoding.UTF8));
+      context.AddSource($"{abstractClassName}.g.cs", SourceText.From(source.Replace("\r\n", "\n"), Encoding.UTF8));
     }
   }
 

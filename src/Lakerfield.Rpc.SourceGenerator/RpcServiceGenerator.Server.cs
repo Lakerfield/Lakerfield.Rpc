@@ -23,7 +23,7 @@ public partial class RpcServiceGenerator
     if (hasWebSocketServer && classSymbol.BaseType?.Name != "LakerfieldRpcWebSocketServer") sourceBuilder.AppendLine($"#error {{className}} should inherit from Lakerfield.Rpc.LakerfieldRpcWebSocketServer<IMyService>");
     if (sourceBuilder.Length > 0)
     {
-      context.AddSource($"{className}.server.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
+      context.AddSource($"{className}.server.g.cs", SourceText.From(sourceBuilder.ToString().Replace("\r\n", "\n"), Encoding.UTF8));
       return;
     }
 
@@ -301,7 +301,7 @@ namespace {{namespaceName}}
 """);
 
     // Add the generated source
-    context.AddSource($"{className}.server.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
+    context.AddSource($"{className}.server.g.cs", SourceText.From(sourceBuilder.ToString().Replace("\r\n", "\n"), Encoding.UTF8));
   }
 
 }

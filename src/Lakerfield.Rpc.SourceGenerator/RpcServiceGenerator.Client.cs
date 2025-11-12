@@ -20,7 +20,7 @@ public partial class RpcServiceGenerator
     if (!hasClient && !hasWebSocketClient) sourceBuilder.AppendLine($"#error {{className}} should reference Lakerfield.Rpc.Client or Lakerfield.Rpc.WebSocketClient");
     if (sourceBuilder.Length > 0)
     {
-      context.AddSource($"{className}.client.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
+      context.AddSource($"{className}.client.g.cs", SourceText.From(sourceBuilder.ToString().Replace("\r\n", "\n"), Encoding.UTF8));
       return;
     }
 
@@ -95,7 +95,7 @@ public partial class RpcServiceGenerator
       """);
 
     // Add the generated source
-    context.AddSource($"{className}.client.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
+    context.AddSource($"{className}.client.g.cs", SourceText.From(sourceBuilder.ToString().Replace("\r\n", "\n"), Encoding.UTF8));
   }
 
 }

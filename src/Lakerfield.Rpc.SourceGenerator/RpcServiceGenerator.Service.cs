@@ -149,7 +149,7 @@ namespace {{namespaceName}}
 """);
 
     // Add the generated source
-    context.AddSource($"{className}.service.g.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
+    context.AddSource($"{className}.service.g.cs", SourceText.From(sourceBuilder.ToString().Replace("\r\n", "\n"), Encoding.UTF8));
   }
 
 }
