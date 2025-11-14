@@ -388,7 +388,7 @@ namespace Lakerfield.Rpc
       }
     }
 
-
+    private readonly SemaphoreLocker _writeLocker = new SemaphoreLocker();
     internal async Task SendMessage(MemoryStream memoryStream, int requestId)
     {
       if (_state == DrieNulConnectionState.Closed) { throw new InvalidOperationException("Connection is closed."); }
@@ -403,11 +403,13 @@ namespace Lakerfield.Rpc
         _lastUsedAt = DateTime.UtcNow;
         _requestId = requestId;
       }
-      // TODO lock around write???
       try
       {
-        await SendMemoryStreamToWebSocket(memoryStream, _webSocket, CancellationToken.None);
-        _messageCounter++;
+        await _writeLocker.LockAsync(async () =>
+        {
+          await SendMemoryStreamToWebSocket(memoryStream, _webSocket, CancellationToken.None);
+          _messageCounter++;
+        });
       }
       catch (WebSocketException wsex)
       {
